@@ -1,0 +1,25 @@
+version: 1
+
+script:
+  - rm -rf tiny-music-player.AppDir/usr/share/man AppDir/usr/share/doc/*/README.* tiny-music-player.AppDir/usr/share/doc/*/changelog.*
+
+AppDir:
+  path: ./tiny-music-player.AppDir
+  app_info:
+    id: com.1kib.tiny-music-player
+    name: Tiny Music Player
+    # icon: tiny-music-player
+    version: '1.0'
+    exec: usr/bin/tiny-music-player
+    exec_args: $@
+    
+  apt:
+    arch: amd64
+    sources:
+      - sourceline: 'deb http://archive.ubuntu.com/ubuntu/ focal main restricted universe'
+        key_url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x871920D1991BC93C'
+    include:
+      - libid3tag0
+
+AppImage:
+  arch: x86_64

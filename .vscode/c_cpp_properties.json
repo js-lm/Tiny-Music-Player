@@ -1,0 +1,29 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/sources/**",
+                "${workspaceFolder}/build/_deps/raylib-src/src",
+                "${workspaceFolder}/build/_deps/magic_enum-src/include/magic_enum",
+                "${workspaceFolder}/build/_deps/imgui-src",
+                "${workspaceFolder}/build/_deps/rlimgui-src",
+                "${workspaceFolder}/build/_deps/taglib-src",
+                "${workspaceFolder}/resources"
+            ],
+            "defines": [
+                "ASSETS_PATH=\"${workspaceFolder}/assets/\"",
+                "CMAKE_BUILD_TYPE=Debug",
+                "GRAPHICS_API_OPENGL_33",
+                "PLATFORM_DESKTOP",
+                "DEBUG"
+            ],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+        }
+    ],
+    "version": 4
+}
