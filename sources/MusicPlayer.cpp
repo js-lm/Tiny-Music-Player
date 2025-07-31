@@ -33,16 +33,23 @@ int MusicPlayer::run(){
 
 void MusicPlayer::init(){
 	SetConfigFlags(FLAG_WINDOW_UNDECORATED | FLAG_WINDOW_TRANSPARENT | FLAG_WINDOW_ALWAYS_RUN);
-	InitWindow(Constants::System::WindowWidth, Constants::System::WindowHeight, Constants::System::WindowName);
+	InitWindow(
+        Constants::System::WindowWidth, 
+        Constants::System::WindowHeight, 
+        Constants::System::WindowName
+    );
     SetWindowOpacity(Constants::System::WindowOpacity);
 	SetTargetFPS(Constants::System::WindowFPS);
+    SetWindowSize(
+        scaleToDpiInt(Constants::System::WindowWidth),
+        scaleToDpiInt(Constants::System::WindowHeight)
+    );
 
 	rlImGuiSetup(false);
     ImGuiIO &io{ImGui::GetIO()};
-
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
     io.IniFilename = nullptr;
-
+    ImGui::GetStyle().ScaleAllSizes(scaleToDpiFloat(1));
 
     SetAudioStreamBufferSizeDefault(Constants::System::AudioBufferSize);
     InitAudioDevice();

@@ -79,6 +79,8 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "expected": "cpp",
-        "format": "cpp"
+        "format": "cpp",
+        "queue": "cpp",
+        "text_encoding": "cpp"
     }
 }

@@ -19,7 +19,10 @@ bool MusicPlayer::drawImageButton(Constants::Icons::Id iconId){
     
     bool isClicked{ImGui::InvisibleButton(
         std::to_string(static_cast<int>(iconId)).c_str(), 
-        Constants::Icons::ButtonSize
+        ImVec2{
+            scaleToDpiFloat(Constants::Icons::ButtonSize.x),
+            scaleToDpiFloat(Constants::Icons::ButtonSize.y)
+        }
     )};
     
 
@@ -27,18 +30,17 @@ bool MusicPlayer::drawImageButton(Constants::Icons::Id iconId){
     if(ImGui::IsItemActive()) offsetY = Constants::Icons::IconSize.y * 2;
     else if(ImGui::IsItemHovered()) offsetY = Constants::Icons::IconSize.y * 1;
     
-    
     ImGui::SetCursorPos(positionBeforeAddingButton);
     
     rlImGuiImageRect(
         &iconsTexture_, 
-        Constants::Icons::IconSize.x, 
-        Constants::Icons::IconSize.y,  
+        scaleToDpiInt(Constants::Icons::IconSize.x), 
+        scaleToDpiInt(Constants::Icons::IconSize.y),  
         Rectangle{
-            static_cast<float>(Constants::Icons::IconSize.x * static_cast<int>(iconId)),
-            static_cast<float>(offsetY),
-            Constants::Icons::IconSize.x,
-            Constants::Icons::IconSize.y
+            scaleToDpiFloat(static_cast<float>(Constants::Icons::IconSize.x * static_cast<int>(iconId))),
+            scaleToDpiFloat(static_cast<float>(offsetY)),
+            scaleToDpiFloat(Constants::Icons::IconSize.x), 
+            scaleToDpiFloat(Constants::Icons::IconSize.y),  
         }
     );
 

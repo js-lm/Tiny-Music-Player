@@ -9,12 +9,12 @@ void MusicPlayer::drawInterface(){
     ImGui::SetNextWindowPos(ImVec2{0, 0});
 
     if(ImGui::Begin(
-        "tiny-music-player", nullptr, 
+        "tiny-music-player", nullptr,
         ImGuiWindowFlags_NoTitleBar 
       | ImGuiWindowFlags_NoResize 
       | ImGuiWindowFlags_NoScrollbar 
       | ImGuiWindowFlags_NoScrollWithMouse 
-      | ImGuiWindowFlags_NoCollapse 
+      | ImGuiWindowFlags_NoCollapse
       | ImGuiWindowFlags_AlwaysAutoResize 
       | ImGuiWindowFlags_NoSavedSettings
     )){
@@ -37,13 +37,13 @@ void MusicPlayer::drawInterface(){
         } /* Window controls */
 
         /* Song Information */ {
-            ImGui::Spacing();
+            ImGui::Dummy(ImVec2(0, ImGui::GetStyle().ItemSpacing.y));
             ImGui::SameLine(0, Constants::ImGui::ProgressBarIndentation);
             ImGui::TextUnformatted(displayedMusicTitle_.c_str());
             if(ImGui::IsItemHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
             if(ImGui::IsItemClicked()) copyMusicTitleClicked();
 
-            ImGui::Spacing();
+            ImGui::Dummy(ImVec2(0, ImGui::GetStyle().ItemSpacing.y));
             ImGui::SameLine(0, Constants::ImGui::ProgressBarIndentation);
             ImGui::PushStyleColor(ImGuiCol_Text, Constants::ImGui::SubtitleColor);
             if(isShowingArtist_ && !displayedArtistName_.empty()){
@@ -60,7 +60,7 @@ void MusicPlayer::drawInterface(){
         } /* Song Information */
 
         /* Music Progress Bar */ {
-            ImGui::Spacing();
+            ImGui::Dummy(ImVec2(0, ImGui::GetStyle().ItemSpacing.y));
             if(ImGui::BeginTable("progress-bar-table", 3, ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_NoPadInnerX, ImVec2(-1, 0))){
                 ImGui::TableSetupColumn("left-stretch", ImGuiTableColumnFlags_WidthStretch, 0);
                 ImGui::TableSetupColumn("content", ImGuiTableColumnFlags_WidthFixed, 0);
@@ -72,7 +72,7 @@ void MusicPlayer::drawInterface(){
 
                 if(!IsMusicValid(music_)) ImGui::BeginDisabled();
                 ImGui::SameLine(0, Constants::ImGui::ProgressBarHorizontalSpacing);
-                ImGui::SetNextItemWidth(Constants::ImGui::ProgressBarWidth);
+                ImGui::SetNextItemWidth(scaleToDpiFloat(Constants::ImGui::ProgressBarWidth));
                 if((isCurrentlyInteractingWithProgressBar_ = ImGui::SliderFloat("##music-progress", &musicProgress_, .0f, 1.0f, ""))) progressBarClicked();
                 if(ImGui::IsItemClicked()) wasPausing_ = !IsMusicStreamPlaying(music_);
                 if(ImGui::IsItemActive()) PauseMusicStream(music_);
@@ -88,9 +88,8 @@ void MusicPlayer::drawInterface(){
         } /* Music Progress Bar */
 
         /* Music Controls */ {
-            ImGui::Spacing();
-            ImGui::Spacing();
-            if(ImGui::BeginTable("music-control-table", 3, ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_NoPadInnerX, ImVec2(-1, 0))){
+            ImGui::Dummy(ImVec2(0, ImGui::GetStyle().ItemSpacing.y));
+            if(ImGui::BeginTable("music-control-table", 3, ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_NoPadInnerX, ImVec2(-1, 0))) {
                 ImGui::TableSetupColumn("left-stretch", ImGuiTableColumnFlags_WidthStretch, 0);
                 ImGui::TableSetupColumn("content", ImGuiTableColumnFlags_WidthFixed, 0);
                 ImGui::TableSetupColumn("right-stretch", ImGuiTableColumnFlags_WidthStretch, 0);
@@ -100,17 +99,17 @@ void MusicPlayer::drawInterface(){
                 if(drawImageButton((isShuffling_ ? Constants::Icons::Id::Shuffle_On : Constants::Icons::Id::Shuffle_Off))) toggleShuffleClicked();
                 if(ImGui::IsItemHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
-                ImGui::SameLine(0, Constants::ImGui::MusicControlOuterHorizontalSpacing);
+                ImGui::SameLine(0, scaleToDpiFloat(Constants::ImGui::MusicControlOuterHorizontalSpacing));
                 if(drawImageButton(Constants::Icons::Id::Previous_Music)) previousSongClicked();
                 if(ImGui::IsItemHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
 
-                ImGui::SameLine(0, Constants::ImGui::MusicControlInnerHorizontalSpacing);
+                ImGui::SameLine(0, scaleToDpiFloat(Constants::ImGui::MusicControlInnerHorizontalSpacing));
                 if(drawImageButton(IsMusicValid(music_) && IsMusicStreamPlaying(music_) ? Constants::Icons::Id::Pause : Constants::Icons::Id::Play)) playPauseMusicClicked();
                 if(ImGui::IsItemHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
 
-                ImGui::SameLine(0, Constants::ImGui::MusicControlInnerHorizontalSpacing);
+                ImGui::SameLine(0, scaleToDpiFloat(Constants::ImGui::MusicControlInnerHorizontalSpacing));
                 if(drawImageButton(Constants::Icons::Id::Next_Music)) nextSongClicked();
                 if(ImGui::IsItemHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
@@ -122,7 +121,7 @@ void MusicPlayer::drawInterface(){
                 case Constants::LoopMode::Directory_Loop_Infinite: iconId = Constants::Icons::Id::Directory_Loop_Infinite; break;
                 }
 
-                ImGui::SameLine(0, Constants::ImGui::MusicControlOuterHorizontalSpacing);
+                ImGui::SameLine(0, scaleToDpiFloat(Constants::ImGui::MusicControlOuterHorizontalSpacing));
 
                 if(drawImageButton(iconId)) toggleLoopClicked();
                 if(ImGui::IsItemHovered()){
@@ -132,20 +131,20 @@ void MusicPlayer::drawInterface(){
                         toggleLoopClicked(false);
                     }
 
-                switch(loopMode_){
-                case Constants::LoopMode::No_Loop: 
-                    ImGui::SetTooltip("Looping is off"); 
-                    break;
-                case Constants::LoopMode::Single_Music_Loop: 
-                    ImGui::SetTooltip("Loop the current song"); 
-                    break;
-                case Constants::LoopMode::Directory_Loop: 
-                    ImGui::SetTooltip("Loop all songs in the current directory"); 
-                    break;
-                case Constants::LoopMode::Directory_Loop_Infinite: 
-                    ImGui::SetTooltip("Loop all songs in the current directory infinitely"); 
-                    break;
-                }
+                    switch(loopMode_){
+                    case Constants::LoopMode::No_Loop: 
+                        ImGui::SetTooltip("Looping is off"); 
+                        break;
+                    case Constants::LoopMode::Single_Music_Loop: 
+                        ImGui::SetTooltip("Loop the current song"); 
+                        break;
+                    case Constants::LoopMode::Directory_Loop: 
+                        ImGui::SetTooltip("Loop all songs in the current directory"); 
+                        break;
+                    case Constants::LoopMode::Directory_Loop_Infinite: 
+                        ImGui::SetTooltip("Loop all songs in the current directory infinitely"); 
+                        break;
+                    }
                 }
 
                 ImGui::EndTable();
@@ -154,5 +153,4 @@ void MusicPlayer::drawInterface(){
         
         ImGui::End();
     }
-
 }

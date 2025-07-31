@@ -21,34 +21,35 @@ namespace Lock{
         }
 
         inline std::string GetConfigDirectory(){
-            std::filesystem::path configPath;
+            std::filesystem::path lockPath;
 
 #if defined(__linux__)
             // Linux: ~/.config
-            const char *xdgConfigHome{std::getenv("XDG_CONFIG_HOME")};
-            if(xdgConfigHome != nullptr && xdgConfigHome[0] != '\0'){
-                configPath = xdgConfigHome;
+            const char *xdgRuntimeDirectory{std::getenv("XDG_RUNTIME_DIR")};
+            if(xdgRuntimeDirectory && xdgRuntimeDirectory[0] != '\0'){
+                lockPath = xdgRuntimeDirectory;
             }else{
-                const char *home{std::getenv("HOME")};
-                if(home == nullptr) return "";
-                
-                configPath = home;
-                configPath /= ".config";
+                const char *tmpDirectory{std::getenv("TMPDIR")};
+                if(tmpDirectory && tmpDirectory[0] != '\0'){
+                    lockPath = tmpDirectory;
+                }else{
+                    lockPath = "/tmp";
+                }
             }
 #elif defined(__APPLE__)
 
 #elif defined(_WIN32)
 
 #endif
-            configPath /= Constants::System::WindowName;
+            lockPath /= Constants::System::WindowName;
 
             try{
-                std::filesystem::create_directories(configPath);
+                std::filesystem::create_directories(lockPath);
             }catch(...){ 
                 return "";
             }
 
-            return configPath.string();
+            return lockPath.string();
         }
     } // namespace _
 

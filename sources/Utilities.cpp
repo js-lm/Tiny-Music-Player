@@ -14,18 +14,42 @@
 
 void MusicPlayer::initIconsTexture(){
     Image iconsImage{GenImageColor(
-        Constants::Icons::NumberOfColumns, 
-        Constants::Icons::NumberOfRows * 3, 
+        scaleToDpiInt(Constants::Icons::NumberOfColumns), 
+        scaleToDpiInt(Constants::Icons::NumberOfRows * 3), 
         BLANK
     )};
+
+    const int pixelSize{scaleToDpiInt(1)};
+
+    // void ImageDrawRectangle(Image *dst, int posX, int posY, int width, int height, Color color);       // Draw rectangle within an image
+
 
     for(size_t row{0}; row < Constants::Icons::NumberOfRows; row++){
         const auto &bitsetRow{Constants::Icons::IconsBitset[row]};
         for(size_t column{0}; column < Constants::Icons::NumberOfColumns; column++){
             if(bitsetRow.test(column)){
-                ImageDrawPixel(&iconsImage, column, row, Constants::Icons::NormalColor);
-                ImageDrawPixel(&iconsImage, column, row + Constants::Icons::IconSize.y, Constants::Icons::HoverColor);
-                ImageDrawPixel(&iconsImage, column, row + Constants::Icons::IconSize.y * 2, Constants::Icons::ActiveColor);
+                // ImageDrawPixel(&iconsImage, column, row, Constants::Icons::NormalColor);
+                ImageDrawRectangle(
+                    &iconsImage, 
+                    column * pixelSize, 
+                    row * pixelSize, 
+                    pixelSize, pixelSize, 
+                    Constants::Icons::NormalColor
+                );
+                ImageDrawRectangle(
+                    &iconsImage, 
+                    column * pixelSize, 
+                    row * pixelSize + Constants::Icons::IconSize.y * pixelSize, 
+                    pixelSize, pixelSize, 
+                    Constants::Icons::HoverColor
+                );
+                ImageDrawRectangle(
+                    &iconsImage, 
+                    column * pixelSize, 
+                    row * pixelSize + Constants::Icons::IconSize.y * 2 * pixelSize, 
+                    pixelSize, pixelSize, 
+                    Constants::Icons::ActiveColor
+                );
             }
         }
     }
@@ -250,9 +274,10 @@ std::optional<std::string> MusicPlayer::getArgumentPath(int argumentCount, char 
     std::string pathFound;
     for(int i{1}; i < argumentCount; i++){
         if(IsPathFile(arguments[i]) && pathFound.empty()) pathFound = arguments[i];
-        else if(strcmp(arguments[i], "--credits") == 0) std::cout << "Created by js-lm (me@joshlam.dev)" << std::endl;
         else if(strcmp(arguments[i], "--help") == 0 || strcmp(arguments[i], "-h") == 0){
-
+            std::cout << "A tiny music player created by js-lm (me@joshlam.dev)" << std::endl;
+        }else if(strcmp(arguments[i], "--version") == 0 || strcmp(arguments[i], "-v") == 0){
+            std::cout << "Version " << Constants::System::AppVersion << std::endl;
         }
     }
     

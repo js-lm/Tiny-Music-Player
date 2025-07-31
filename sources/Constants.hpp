@@ -31,6 +31,8 @@ namespace Constants{
         constexpr int WindowFPS{144};
 
         constexpr int AudioBufferSize{4096};
+
+        constexpr const char *AppVersion{"0.1.1"};
     } // namespace System
 
     namespace ImGui{

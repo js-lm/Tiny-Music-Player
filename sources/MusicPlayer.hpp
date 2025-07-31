@@ -126,4 +126,13 @@ private:
     bool isMusicFile(const char *filename);
 
     void shuffleMusic();
+
+    Vector2 scaleToDpiVector2(Vector2 values){
+        return Vector2{
+            values.x * GetWindowScaleDPI().x, 
+            values.y * GetWindowScaleDPI().y
+        };
+    }
+    float scaleToDpiFloat(float value){ return value * GetWindowScaleDPI().x;}
+    int scaleToDpiInt(int value){ return static_cast<int>(value * GetWindowScaleDPI().x);}
 };
