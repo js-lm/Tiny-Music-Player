@@ -1,6 +1,5 @@
 #include "MusicPlayer.hpp"
 
-#include "MetadataParser.hpp"
 #include "Constants.hpp"
 #include "Lock.hpp"
 
@@ -186,9 +185,8 @@ bool MusicPlayer::tryStartMusicStream(const char *filename){
         totalLengthString_ = secondInFloatToString(currentMusicTotalLength_);
         currentProgressString_ = secondInFloatToString(.0f);
         
-        auto metadata{GetMusicMetadata(filename)};
-        displayedMusicTitle_ = metadata.title;
-        displayedArtistName_ = metadata.artist;
+        displayedMusicTitle_ = GetFileNameWithoutExt(filename);
+        displayedArtistName_.clear();
         displayedFilePath_ = filename;
 
         return true;

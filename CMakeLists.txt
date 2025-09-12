@@ -1,42 +1,33 @@
-cmake_minimum_required(VERSION 3.22)
-project(tiny-music-player CXX)
+cmake_minimum_required(VERSION 3.12)
+
+project(tiny-music-player
+    LANGUAGES CXX
+    VERSION 0.1.0
+)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 include(FetchContent)
 
-##########################################################################################
-# Add dependencies with FetchContent
-##########################################################################################
 
-function(add_git_dependency libName gitURL gitTag)
-    FetchContent_Declare(${libName}
-        GIT_REPOSITORY ${gitURL}
-        GIT_TAG        ${gitTag}
-        GIT_SHALLOW    TRUE
-        GIT_PROGRESS   TRUE
-    )
-    FetchContent_MakeAvailable(${libName})
-    target_compile_options(${libName} PRIVATE "-w")
-endfunction()
 
-# Add Raylib
+# fetch contents
 set(SUPPORT_MODULE_RSHAPES  OFF CACHE BOOL "Disable rshapes module" FORCE)
 set(SUPPORT_MODULE_RTEXT    OFF CACHE BOOL "Disable rtext module" FORCE)
 set(SUPPORT_MODULE_RMODELS  OFF CACHE BOOL "Disable 3D models module" FORCE)
-
 set(SUPPORT_FILEFORMAT_FLAC  ON CACHE BOOL "Enable FLAC support" FORCE)
+set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(BUILD_GAMES    OFF CACHE BOOL "" FORCE)
 
-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
-set(BUILD_GAMES    OFF CACHE BOOL "" FORCE) # don't build the supplied example games
-add_git_dependency(
+FetchContent_Declare(
     raylib
-    https://github.com/raysan5/raylib.git
-    5.5
+    GIT_REPOSITORY https://github.com/raysan5/raylib.git
+    GIT_TAG        5.5
 )
+FetchContent_MakeAvailable(raylib)
 
 FetchContent_Declare(
     imgui
@@ -59,91 +50,37 @@ endif()
 add_library(rlImGui STATIC
     ${rlimgui_SOURCE_DIR}/rlImGui.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
-
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_tables.cpp
     ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-
-    # ${imgui_SOURCE_DIR}/imgui_demo.cpp
 )
 target_include_directories(rlImGui PUBLIC
     ${rlimgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}
 )
 target_link_libraries(rlImGui PUBLIC raylib)
+target_compile_definitions(rlImGui PRIVATE FONT_AWESOME_ICON_SIZE=26)
 
-##########################################################################################
-# Project executable setup
-##########################################################################################
 
-file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS 
-    "${CMAKE_CURRENT_LIST_DIR}/sources/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/include/*.cpp"
+
+# define PROJECT_SOURCES
+file(GLOB_RECURSE PROJECT_SOURCES
+    CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/sources/*.cpp"
 )
 
-set(PROJECT_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/sources/")
 
-add_executable(${PROJECT_NAME})
-target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE 
-    ${PROJECT_INCLUDE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/resources
-    include
+# configure the build
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE "PROJECT_VERSION=\"${PROJECT_VERSION}\"")
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/sources"
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources"
 )
-
-# Find libid3tag (macOS/Linux)
-if(APPLE)
-    message(STATUS "Configuring for macOS")
-    find_library(ID3TAG_LIBRARY NAMES id3tag PATHS /opt/homebrew/lib REQUIRED)
-    find_path(ID3TAG_INCLUDE_DIR NAMES id3tag.h PATHS /opt/homebrew/include REQUIRED)
-elseif(UNIX)
-    message(STATUS "Configuring for Linux")
-    find_library(ID3TAG_LIBRARY NAMES id3tag PATHS /usr/lib /usr/local/lib REQUIRED)
-    find_path(ID3TAG_INCLUDE_DIR NAMES id3tag.h PATHS /usr/include /usr/local/include REQUIRED)
-endif()
-
-# Link and include
-target_include_directories(tiny-music-player PRIVATE ${ID3TAG_INCLUDE_DIR})
-target_link_libraries(tiny-music-player PRIVATE ${ID3TAG_LIBRARY})
-
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     raylib
     rlImGui
 )
-
-##########################################################################################
-# Project build settings
-##########################################################################################
-
-# Set the awesome font size for rlImGui
-target_compile_definitions(rlImGui PRIVATE FONT_AWESOME_ICON_SIZE=26)
-
-add_definitions(-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
-
-# Setting ASSETS_PATH
-if (CMAKE_BUILD_TYPE MATCHES "Debug")
-    SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O0 -DDEBUG")
-
-    # Set the asset path macro to the absolute path on the dev machine
-    target_compile_definitions(${PROJECT_NAME} PUBLIC ASSETS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
-else()
-    # Set the asset path macro in release mode to a relative path that assumes the assets folder is in the same directory as the game executable
-    target_compile_definitions(${PROJECT_NAME} PUBLIC RESOURCES_PATH="./assets/")
-endif()
-
-if(CMAKE_BUILD_TYPE STREQUAL "Release" AND NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC" AND NOT APPLE)
-    message(STATUS "Release build: Applying size optimization flags.")
-        target_compile_options(${PROJECT_NAME} PRIVATE 
-        -ffunction-sections 
-        -fdata-sections
-    )
-    target_link_options(${PROJECT_NAME} PRIVATE 
-        "-Wl,--gc-sections" # Garbage collect unused sections
-        "-s"                # Strip symbols from the executable
-    )
-endif()
-
-# Set common compiler flags
-# SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wswitch")
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall")
