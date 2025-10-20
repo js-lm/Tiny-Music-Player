@@ -8,8 +8,47 @@
 #include <random>
 #include <algorithm>
 #include <iostream>
+#include <cstring>
 
 #include <raymath.h>
+
+bool MusicPlayer::drawImageButton(Constants::Icons::Id iconId, Rectangle bounds){
+    Vector2 mousePosition{GetMousePosition()};
+    bool isHovered{CheckCollisionPointRec(mousePosition, bounds)};
+    bool isClicked{false};
+    
+    if(isHovered){
+        isAnyWidgetHovered_ = true;
+        if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+            isClicked = true;
+        }
+    }
+    
+    int offsetYPosition{0};
+    if(IsMouseButtonDown(MOUSE_BUTTON_LEFT) && isHovered){
+        offsetYPosition = Constants::Icons::IconSize.y * 2; // active
+    }else if(isHovered){
+        offsetYPosition = Constants::Icons::IconSize.y * 1; // hover
+    }
+    
+    Rectangle sourceRectangle{
+        Constants::Icons::IconSize.x * static_cast<float>(static_cast<int>(iconId)),
+        static_cast<float>(offsetYPosition),
+        Constants::Icons::IconSize.x,
+        Constants::Icons::IconSize.y
+    };
+    
+    Rectangle destinationRectangle{
+        bounds.x + Constants::Icons::IconOffset.x,
+        bounds.y + Constants::Icons::IconOffset.y,
+        Constants::Icons::IconSize.x,
+        Constants::Icons::IconSize.y
+    };
+    
+    DrawTexturePro(iconsTexture_, sourceRectangle, destinationRectangle, Vector2{0, 0}, .0f, WHITE);
+    
+    return isClicked;
+}
 
 void MusicPlayer::initIconsTexture(){
     Image iconsImage{GenImageColor(

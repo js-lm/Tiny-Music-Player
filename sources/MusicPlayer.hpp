@@ -1,7 +1,7 @@
 #pragma once
 
 #include <raylib.h>
-#include <imgui.h>
+#include <raygui.h>
 
 #include <string>
 #include <optional>
@@ -27,6 +27,10 @@ private:
 
 private:
     Texture2D iconsTexture_;
+    RenderTexture2D renderTexture_;
+    float dpiScale_;
+    Rectangle renderSourceRect_;
+    Rectangle renderDestRect_;
 
 private:
     std::string programArgumentPath_;
@@ -50,6 +54,7 @@ private: // window dragging event
     bool isDragging_{false};
     Vector2 currentWindowPosition_;
     Vector2 previousMouseScreenPosition_;
+    bool isAnyWidgetHovered_{false};
 
 private: // progress bar drag event
     bool wasPausing_{false};
@@ -118,7 +123,7 @@ private:
     void initIconsTexture();
     void initWindowIcon();
 
-    bool drawImageButton(Constants::Icons::Id iconId);
+    bool drawImageButton(Constants::Icons::Id iconId, Rectangle bounds);
 
     std::string secondInFloatToString(float second);
 

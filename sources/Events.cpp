@@ -8,7 +8,7 @@
 void MusicPlayer::handleWindowDrag(){
     Vector2 currentMouseWindowPosition{GetMousePosition()};
 
-    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !ImGui::IsAnyItemHovered()){
+    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isAnyWidgetHovered_){
         isDragging_ = true;
         currentWindowPosition_ = GetWindowPosition();
         previousMouseScreenPosition_ = Vector2Add(

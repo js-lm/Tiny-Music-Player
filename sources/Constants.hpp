@@ -35,19 +35,33 @@ namespace Constants{
         constexpr const char *AppVersion{"0.1.1"};
     } // namespace System
 
-    namespace ImGui{
-        constexpr float ControlPanelHorizontalSpacing{10.0f};
+    namespace UI{
+        constexpr float BackgroundOpacity{.9f};
         
-        constexpr float ProgressBarIndentation      {25.0f};
-        constexpr float ProgressBarHorizontalSpacing{10.0f};
-        constexpr float ProgressBarWidth            {450.0f};
-        constexpr ImVec4 SubtitleColor{.5f, .5f, .5f, 1.0f};
+        constexpr int WindowControlYPosition{10};
+        constexpr int WindowControlSpacing  {10};
+        constexpr int ButtonSize            {30};
         
+        constexpr int TitleYPosition    {40};
+        constexpr int SubtitleYPosition {60};
+        constexpr int TextIndentation   {25};
+        constexpr int TextFontSize      {10};
         
-        constexpr float MusicControlOuterHorizontalSpacing{60.0f};
-        constexpr float MusicControlInnerHorizontalSpacing{30.0f};
+        constexpr int ProgressBarYPosition  {90};
+        constexpr int ProgressBarWidth      {450};
+        constexpr int ProgressBarHeight     {20};
+        constexpr int ProgressBarTimeTextOffset{5};
+        constexpr int CurrentTimeXOffset    {-50};
+        constexpr int TotalTimeXOffset      {10};
+        
+        constexpr int MusicControlsYPosition    {120};
+        constexpr int MusicControlInnerSpacing  {30};
+        constexpr int MusicControlOuterSpacing  {60};
+        constexpr int TotalMusicControlButtons  {5};
+        
+        constexpr Color SubtitleColor{128, 128, 128, 255};
 
-    } // namespace ImGui
+    } // namespace UI
 
     namespace WindowIcon{
 
@@ -61,11 +75,11 @@ namespace Constants{
     } // namespace WindowIcon
 
     namespace Icons{
-        constexpr ImVec2 ButtonSize {30.0f, 30.0f};
+        constexpr float ButtonSize  {30.0f};
         constexpr Vector2 IconSize  {26.0f, 24.0f};
         constexpr Vector2 IconOffset{
-            static_cast<float>(static_cast<int>((ButtonSize.x - IconSize.x) / 2.0f)),
-            static_cast<float>(static_cast<int>((ButtonSize.y - IconSize.y) / 2.0f))
+            static_cast<float>(static_cast<int>((ButtonSize - IconSize.x) / 2.0f)),
+            static_cast<float>(static_cast<int>((ButtonSize - IconSize.y) / 2.0f))
         };
 
         constexpr Color NormalColor{BLACK};
@@ -114,7 +128,7 @@ namespace Constants{
             std::bitset<NumberOfColumns>("000000000000000001000001000000000000000000000000010000000100100000000000101000000010011000000000000000000000100001000000100001000000010100000000000100100000000000010000000010000000000000000100000000000000000000000001000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000"),
             std::bitset<NumberOfColumns>("000000000000000000100010000000000000000000000000100000000011000000000000010000000001100000000000000000000000011110000000011110000000001000000000000011000000000000001000000001000000000000000010000000000000000000000000100000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000"),
             std::bitset<NumberOfColumns>("000000000000000000100100000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000001000000000000000001000000000000000000000000010000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000"),
-            std::bitset<NumberOfColumns>("000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000001000000000000000000100000000000000000000000001000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000001")
+            std::bitset<NumberOfColumns>("000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000001000000000000000000100000000000000000000000001000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000")
         };
     } // namespace Icons
 

@@ -1,10 +1,8 @@
+#define RAYGUI_IMPLEMENTATION
 #include "MusicPlayer.hpp"
 
 #include "Constants.hpp"
 #include "Lock.hpp"
-
-#include <imgui.h> 
-#include <rlImGui.h>
 
 MusicPlayer::MusicPlayer(int argumentCount, char *arguments[]){
     SetTraceLogLevel(LOG_NONE);
@@ -40,16 +38,29 @@ void MusicPlayer::init(){
     );
     SetWindowOpacity(Constants::System::WindowOpacity);
 	SetTargetFPS(Constants::System::WindowFPS);
+    
+    dpiScale_ = GetWindowScaleDPI().x;
+    
     SetWindowSize(
         scaleToDpiInt(Constants::System::WindowWidth),
         scaleToDpiInt(Constants::System::WindowHeight)
     );
 
-	rlImGuiSetup(false);
-    ImGuiIO &io{ImGui::GetIO()};
-	io.ConfigWindowsMoveFromTitleBarOnly = true;
-    io.IniFilename = nullptr;
-    ImGui::GetStyle().ScaleAllSizes(scaleToDpiFloat(1));
+    renderTexture_ = LoadRenderTexture(
+        Constants::System::WindowWidth,
+        Constants::System::WindowHeight
+    );
+    
+    renderSourceRect_ = Rectangle{
+        0, 0,
+        static_cast<float>(Constants::System::WindowWidth),
+        -static_cast<float>(Constants::System::WindowHeight)
+    };
+    renderDestRect_ = Rectangle{
+        0, 0,
+        static_cast<float>(scaleToDpiInt(Constants::System::WindowWidth)),
+        static_cast<float>(scaleToDpiInt(Constants::System::WindowHeight))
+    };
 
     SetAudioStreamBufferSizeDefault(Constants::System::AudioBufferSize);
     InitAudioDevice();
@@ -73,13 +84,25 @@ void MusicPlayer::update(){
 }
 
 void MusicPlayer::draw(){
+    BeginTextureMode(renderTexture_);
+    ClearBackground(BLANK);
+    
+    drawInterface();
+    
+    EndTextureMode();
+    
     BeginDrawing();
     ClearBackground(BLANK);
-
-    rlImGuiBegin();
-    drawInterface();
-    rlImGuiEnd();
-
+    
+    DrawTexturePro(
+        renderTexture_.texture,
+        renderSourceRect_,
+        renderDestRect_,
+        Vector2{0, 0},
+        .0f,
+        WHITE
+    );
+    
     EndDrawing();
 }
 
@@ -87,6 +110,7 @@ void MusicPlayer::shutdown(){
     tryUnloadMusic();
     CloseAudioDevice();
     UnloadTexture(iconsTexture_);
+    UnloadRenderTexture(renderTexture_);
     CloseWindow();
     Lock::UnlockProgram();
 }
