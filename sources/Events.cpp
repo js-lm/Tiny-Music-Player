@@ -7,6 +7,8 @@
 
 void MusicPlayer::handleWindowDrag(){
     Vector2 currentMouseWindowPosition{GetMousePosition()};
+    currentMouseWindowPosition.x *= dpiScale_;
+    currentMouseWindowPosition.y *= dpiScale_;
 
     if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isAnyWidgetHovered_){
         isDragging_ = true;

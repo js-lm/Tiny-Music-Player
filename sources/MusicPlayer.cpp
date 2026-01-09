@@ -46,6 +46,8 @@ void MusicPlayer::init(){
         scaleToDpiInt(Constants::System::WindowHeight)
     );
 
+    SetMouseScale(1.0f / dpiScale_, 1.0f / dpiScale_);
+
     renderTexture_ = LoadRenderTexture(
         Constants::System::WindowWidth,
         Constants::System::WindowHeight

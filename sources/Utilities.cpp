@@ -31,11 +31,12 @@ bool MusicPlayer::drawImageButton(Constants::Icons::Id iconId, Rectangle bounds)
         offsetYPosition = Constants::Icons::IconSize.y * 1; // hover
     }
     
+    int pixelSize{scaleToDpiInt(1)};
     Rectangle sourceRectangle{
-        Constants::Icons::IconSize.x * static_cast<float>(static_cast<int>(iconId)),
-        static_cast<float>(offsetYPosition),
-        Constants::Icons::IconSize.x,
-        Constants::Icons::IconSize.y
+        Constants::Icons::IconSize.x * static_cast<float>(static_cast<int>(iconId)) * pixelSize,
+        static_cast<float>(offsetYPosition) * pixelSize,
+        Constants::Icons::IconSize.x * pixelSize,
+        Constants::Icons::IconSize.y * pixelSize
     };
     
     Rectangle destinationRectangle{
