@@ -300,9 +300,12 @@ bool MusicPlayer::isExtensionValid(const char *filename){
 bool MusicPlayer::isMusicFile(const char *filename){
     if(!FileExists(filename) || !isExtensionValid(filename)) return false;
 
-    auto music{LoadSound(filename)};
-    if(IsSoundValid(music)){
-        UnloadSound(music);
+    // auto music{LoadSound(filename)};
+    // if(IsSoundValid(music)){
+    //     UnloadSound(music);
+    auto music{LoadMusicStream(filename)};
+    if(IsMusicValid(music)){
+        UnloadMusicStream(music);
         return true;
     }
 
