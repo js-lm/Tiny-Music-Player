@@ -3,3 +3,4 @@ build-release
 .vs
 .DS_Store
 packaging
+.vscode

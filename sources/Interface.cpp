@@ -3,6 +3,7 @@
 #include "Constants.hpp"
 
 void MusicPlayer::drawInterface(){
+    std::lock_guard<std::recursive_mutex> lock{musicMutex_};
     isAnyWidgetHovered_ = false;
     
     const int screenWidth{Constants::System::WindowWidth};

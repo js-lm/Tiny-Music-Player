@@ -9,7 +9,16 @@
 
 #include <Constants.hpp>
 
+#include <thread>
+#include <atomic>
+#include <mutex>
+
 class MusicPlayer{
+private:
+    std::thread audioThread_;
+    std::atomic<bool> audioThreadRunning_{false};
+    std::recursive_mutex musicMutex_;
+
 private:
     Music music_{};
     float musicProgress_;
@@ -140,4 +149,5 @@ private:
     }
     float scaleToDpiFloat(float value){ return value * GetWindowScaleDPI().x;}
     int scaleToDpiInt(int value){ return static_cast<int>(value * GetWindowScaleDPI().x);}
+
 };

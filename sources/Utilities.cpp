@@ -103,9 +103,11 @@ void MusicPlayer::initWindowIcon(){
 }
 
 void MusicPlayer::updateMusic(){
+    std::lock_guard<std::recursive_mutex> lock{musicMutex_};
+    
     if(!IsMusicValid(music_)) return;
 
-    UpdateMusicStream(music_);
+    // UpdateMusicStream(music_);
 
     auto musicTimePlayed{GetMusicTimePlayed(music_)};
     
