@@ -111,8 +111,14 @@ void MusicPlayer::updateMusic(){
 
     auto musicTimePlayed{GetMusicTimePlayed(music_)};
     
-    musicProgress_ = musicTimePlayed / currentMusicTotalLength_;
-    currentProgressString_ = secondInFloatToString(musicTimePlayed);
+    // musicProgress_ = musicTimePlayed / currentMusicTotalLength_;
+    // currentProgressString_ = secondInFloatToString(musicTimePlayed);
+    if(!isCurrentlyInteractingWithProgressBar_){
+        musicProgress_ = musicTimePlayed / currentMusicTotalLength_;
+        currentProgressString_ = secondInFloatToString(musicTimePlayed);
+    }else{
+        currentProgressString_ = secondInFloatToString(musicProgress_ * currentMusicTotalLength_);
+    }
 
     if(!IsMusicStreamPlaying(music_) && !isManuallyPaused_ && !isCurrentlyInteractingWithProgressBar_) handleMusicEnd();    
 }

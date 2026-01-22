@@ -117,9 +117,9 @@ void MusicPlayer::drawInterface(){
         
         if(IsMouseButtonReleased(MOUSE_BUTTON_LEFT) && isCurrentlyInteractingWithProgressBar_){
             isCurrentlyInteractingWithProgressBar_ = false;
-            if(musicProgress_ != oldProgress){
+            // if(musicProgress_ != oldProgress){
                 progressBarClicked();
-            }
+            // }
             if(!wasPausing_) ResumeMusicStream(music_);
         }
         
