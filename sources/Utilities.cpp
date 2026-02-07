@@ -105,11 +105,12 @@ void MusicPlayer::initWindowIcon(){
 void MusicPlayer::updateMusic(){
     std::lock_guard<std::recursive_mutex> lock{musicMutex_};
     
-    if(!IsMusicValid(music_)) return;
+    // if(!IsMusicValid(music_)) return;
+    if(formatContext_ == nullptr) return;
 
     // UpdateMusicStream(music_);
 
-    auto musicTimePlayed{GetMusicTimePlayed(music_)};
+    auto musicTimePlayed{musicTimePlayed_};
     
     // musicProgress_ = musicTimePlayed / currentMusicTotalLength_;
     // currentProgressString_ = secondInFloatToString(musicTimePlayed);
@@ -120,7 +121,7 @@ void MusicPlayer::updateMusic(){
         currentProgressString_ = secondInFloatToString(musicProgress_ * currentMusicTotalLength_);
     }
 
-    if(!IsMusicStreamPlaying(music_) && !isManuallyPaused_ && !isCurrentlyInteractingWithProgressBar_) handleMusicEnd();    
+    if(!IsAudioStreamPlaying(audioStream_) && !isManuallyPaused_ && !isCurrentlyInteractingWithProgressBar_) handleMusicEnd();    
 }
 
 std::string MusicPlayer::secondInFloatToString(float second){
@@ -169,10 +170,23 @@ void MusicPlayer::shuffleMusic(){
 }
 
 void MusicPlayer::tryUnloadMusic(){
-    if(IsMusicValid(music_)){
-        StopMusicStream(music_);
-        UnloadMusicStream(music_);
-        music_ = Music{};
+    // if(IsMusicValid(music_)){
+    //     StopMusicStream(music_);
+    //     UnloadMusicStream(music_);
+    //     music_ = Music{};
+    // }
+    if(formatContext_ != nullptr){
+        if(isAudioStreamInitialized_){
+            StopAudioStream(audioStream_);
+            UnloadAudioStream(audioStream_);
+            isAudioStreamInitialized_ = false;
+        }
+        if(swrContext_) swr_free(&swrContext_);
+        if(codecContext_) avcodec_free_context(&codecContext_);
+        if(formatContext_) avformat_close_input(&formatContext_);
+        
+        musicTimePlayed_ = .0f;
+        audioBuffer_.clear();
     }
 }
 
@@ -221,26 +235,89 @@ void MusicPlayer::unloadDirectory(){
 bool MusicPlayer::tryStartMusicStream(const char *filename){
     resetMusicState();
 
-    music_ = LoadMusicStream(filename);
-
-    if(IsMusicValid(music_)){
-        PlayMusicStream(music_);
-        isManuallyPaused_ = false;
-
-        music_.looping = loopMode_ == Constants::LoopMode::Single_Music_Loop;
-        
-        currentMusicTotalLength_ = GetMusicTimeLength(music_);
-        totalLengthString_ = secondInFloatToString(currentMusicTotalLength_);
-        currentProgressString_ = secondInFloatToString(.0f);
-        
-        displayedMusicTitle_ = GetFileNameWithoutExt(filename);
-        displayedArtistName_.clear();
-        displayedFilePath_ = filename;
-
-        return true;
+    formatContext_ = avformat_alloc_context();
+    if(avformat_open_input(&formatContext_, filename, nullptr, nullptr) != 0){
+        tryUnloadMusic();
+        return false;
     }
 
-    return false;
+    if(avformat_find_stream_info(formatContext_, nullptr) < 0){
+        tryUnloadMusic();
+        return false;
+    }
+
+    audioStreamIndex_ = -1;
+    for(unsigned int i{0}; i < formatContext_->nb_streams; i++){
+        if(formatContext_->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO){
+            audioStreamIndex_ = i;
+            break;
+        }
+    }
+
+    if(audioStreamIndex_ == -1){
+        tryUnloadMusic();
+        return false;
+    }
+
+    AVCodecParameters *codecpar{formatContext_->streams[audioStreamIndex_]->codecpar};
+    const AVCodec *codec{avcodec_find_decoder(codecpar->codec_id)};
+    if(!codec){
+        tryUnloadMusic();
+        return false;
+    }
+
+    codecContext_ = avcodec_alloc_context3(codec);
+    if(avcodec_parameters_to_context(codecContext_, codecpar) < 0){
+        tryUnloadMusic();
+        return false;
+    }
+
+    if(avcodec_open2(codecContext_, codec, nullptr) < 0){
+        tryUnloadMusic();
+        return false;
+    }
+
+    swrContext_ = swr_alloc();
+    AVChannelLayout outChannelLayout;
+    av_channel_layout_default(&outChannelLayout, 2);
+
+    swr_alloc_set_opts2(
+        &swrContext_,
+        &outChannelLayout,
+        AV_SAMPLE_FMT_FLT,
+        44100,
+        &codecContext_->ch_layout,
+        codecContext_->sample_fmt,
+        codecContext_->sample_rate,
+        0, 
+        nullptr
+    );
+
+    if(swr_init(swrContext_) < 0){
+        tryUnloadMusic();
+        return false;
+    }
+
+    SetAudioStreamBufferSizeDefault(Constants::System::AudioBufferSize);
+    audioStream_ = LoadAudioStream(44100, 32, 2);
+    isAudioStreamInitialized_ = true;
+    PlayAudioStream(audioStream_);
+    
+    isManuallyPaused_ = false;
+
+    currentMusicTotalLength_ = static_cast<float>(formatContext_->duration) / AV_TIME_BASE;
+    totalLengthString_ = secondInFloatToString(currentMusicTotalLength_);
+    currentProgressString_ = secondInFloatToString(.0f);
+    
+    // Extract metadata
+    AVDictionaryEntry *titleEntry{av_dict_get(formatContext_->metadata, "title", nullptr, 0)};
+    AVDictionaryEntry *artistEntry{av_dict_get(formatContext_->metadata, "artist", nullptr, 0)};
+    
+    displayedMusicTitle_ = titleEntry ? titleEntry->value : GetFileName(filename);
+    displayedArtistName_ = artistEntry ? artistEntry->value : displayedMusicTitle_;
+    displayedFilePath_ = filename;
+
+    return true;
 }
 
 void MusicPlayer::goToNextMusic(){

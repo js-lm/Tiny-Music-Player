@@ -97,7 +97,8 @@ void MusicPlayer::drawInterface(){
             static_cast<float>(Constants::UI::ProgressBarHeight)
         };
         
-        if(!IsMusicValid(music_)) GuiDisable();
+        // if(!IsMusicValid(music_)) GuiDisable();
+        if(formatContext_ == nullptr) GuiDisable();
         
         float oldProgress{musicProgress_};
         GuiSliderBar(progressBarRectangle, "", "", &musicProgress_, .0f, 1.0f);
@@ -106,13 +107,13 @@ void MusicPlayer::drawInterface(){
         if(CheckCollisionPointRec(mousePosition, progressBarRectangle)){
             isAnyWidgetHovered_ = true;
             if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-                wasPausing_ = !IsMusicStreamPlaying(music_);
+                wasPausing_ = !IsAudioStreamPlaying(audioStream_);
                 isCurrentlyInteractingWithProgressBar_ = true;
             }
         }
         
         if(IsMouseButtonDown(MOUSE_BUTTON_LEFT) && isCurrentlyInteractingWithProgressBar_){
-            PauseMusicStream(music_);
+            PauseAudioStream(audioStream_);
         }
         
         if(IsMouseButtonReleased(MOUSE_BUTTON_LEFT) && isCurrentlyInteractingWithProgressBar_){
@@ -120,10 +121,10 @@ void MusicPlayer::drawInterface(){
             // if(musicProgress_ != oldProgress){
                 progressBarClicked();
             // }
-            if(!wasPausing_) ResumeMusicStream(music_);
+            if(!wasPausing_) ResumeAudioStream(audioStream_);
         }
         
-        if(!IsMusicValid(music_)) GuiEnable();
+        if(formatContext_ == nullptr) GuiEnable();
         
         
         const int totalTimeXPosition{progressBarXPosition + Constants::UI::ProgressBarWidth + Constants::UI::TotalTimeXOffset};
@@ -170,8 +171,9 @@ void MusicPlayer::drawInterface(){
             static_cast<float>(Constants::UI::ButtonSize), 
             static_cast<float>(Constants::UI::ButtonSize)
         };
+        
         Constants::Icons::Id playPauseIcon{
-            (IsMusicValid(music_) && IsMusicStreamPlaying(music_)) 
+            (formatContext_ != nullptr && IsAudioStreamPlaying(audioStream_)) 
                 ? Constants::Icons::Id::Pause : Constants::Icons::Id::Play
         };
         if(drawImageButton(playPauseIcon, playPauseRectangle)){

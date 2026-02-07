@@ -14,11 +14,9 @@ include(FetchContent)
 
 
 
-# fetch contents
 set(SUPPORT_MODULE_RSHAPES  OFF CACHE BOOL "Disable rshapes module" FORCE)
 set(SUPPORT_MODULE_RTEXT    OFF CACHE BOOL "Disable rtext module" FORCE)
 set(SUPPORT_MODULE_RMODELS  OFF CACHE BOOL "Disable 3D models module" FORCE)
-set(SUPPORT_FILEFORMAT_FLAC  ON CACHE BOOL "Enable FLAC support" FORCE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_GAMES    OFF CACHE BOOL "" FORCE)
 
@@ -39,16 +37,48 @@ if(NOT raygui_POPULATED)
     FetchContent_Populate(raygui)
 endif()
 
+include(ExternalProject)
 
+set(FFMPEG_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/ffmpeg")
+set(FFMPEG_INSTALL_DIR "${FFMPEG_PREFIX}/install")
 
-# define PROJECT_SOURCES
+ExternalProject_Add(ffmpeg
+    URL "https://ffmpeg.org/releases/ffmpeg-7.0.1.tar.xz"
+    PREFIX ${FFMPEG_PREFIX}
+    CONFIGURE_COMMAND <SOURCE_DIR>/configure
+        --prefix=${FFMPEG_INSTALL_DIR}
+        --disable-shared
+        --enable-static
+        --disable-programs
+        --disable-doc
+        --disable-avdevice
+        --disable-swscale
+        --disable-postproc
+        --disable-avfilter
+        --disable-network
+        --disable-everything
+        --enable-decoder=mp3,mp3float,aac,flac,vorbis,alac,pcm_s16le,pcm_f32le
+        --enable-demuxer=mp3,mov,flac,ogg,wav,aac
+        --enable-parser=mpegaudio,aac,flac,vorbis
+        --enable-protocol=file
+        --disable-vaapi
+        --disable-vdpau
+        --disable-libdrm
+        --disable-vulkan
+        --disable-x86asm
+    BUILD_COMMAND make -j4
+    INSTALL_COMMAND make install
+)
+
+include_directories(${FFMPEG_INSTALL_DIR}/include)
+link_directories(${FFMPEG_INSTALL_DIR}/lib)
+
 file(GLOB_RECURSE PROJECT_SOURCES
     CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/sources/*.cpp"
 )
 
 
-# configure the build
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE "PROJECT_VERSION=\"${PROJECT_VERSION}\"")
@@ -61,4 +91,14 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     raylib
+    avformat
+    avcodec
+    swresample
+    avutil
+    m
+    z
+    pthread
+    X11
 )
+
+add_dependencies(${PROJECT_NAME} ffmpeg)

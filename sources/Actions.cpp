@@ -36,23 +36,28 @@ void MusicPlayer::toggleShuffleClicked(){
 }
 
 void MusicPlayer::previousSongClicked(){
-    if(IsMusicValid(music_)){
-        if(GetMusicTimePlayed(music_) < 1.0f){
+    // if(IsMusicValid(music_)){
+    //     if(GetMusicTimePlayed(music_) < 1.0f){
+    if(formatContext_ != nullptr){
+        if(musicProgress_ * currentMusicTotalLength_ < 1.0f){
             goToPreviousMusic();
         }else{
-            StopMusicStream(music_);
-            PlayMusicStream(music_);
+            // PlayMusicStream(music_);
+            av_seek_frame(formatContext_, -1, 0, AVSEEK_FLAG_BACKWARD);
+            avcodec_flush_buffers(codecContext_);
+            audioBuffer_.clear();
+            currentProgressString_ = secondInFloatToString(.0f);
         }
     }
 }
 
 void MusicPlayer::playPauseMusicClicked(){
-    if(IsMusicStreamPlaying(music_)){
-        PauseMusicStream(music_);
+    if(IsAudioStreamPlaying(audioStream_)){
+        PauseAudioStream(audioStream_);
         isManuallyPaused_ = true;
     }else{
-        ResumeMusicStream(music_);
-        if(!IsMusicStreamPlaying(music_) && IsMusicValid(music_)) PlayMusicStream(music_);
+        ResumeAudioStream(audioStream_);
+        if(!IsAudioStreamPlaying(audioStream_) && formatContext_ != nullptr) PlayAudioStream(audioStream_);
         isManuallyPaused_ = false;
     }
 }
@@ -70,12 +75,15 @@ void MusicPlayer::toggleLoopClicked(bool isForward){
         loopMode_ = static_cast<Constants::LoopMode>((currentLoopModeIndex - 1 + Constants::NumberOfLoopMode) % Constants::NumberOfLoopMode);
     }
 
-    music_.looping = loopMode_ == Constants::LoopMode::Single_Music_Loop;
+    // music_.looping = loopMode_ == Constants::LoopMode::Single_Music_Loop;
 }
 
 void MusicPlayer::progressBarClicked(){
-    if(IsMusicValid(music_)){
-        SeekMusicStream(music_, musicProgress_ * currentMusicTotalLength_);
+    if(formatContext_ != nullptr){
+        int64_t targetPts{static_cast<int64_t>((musicProgress_ * currentMusicTotalLength_) * AV_TIME_BASE)};
+        av_seek_frame(formatContext_, -1, targetPts, AVSEEK_FLAG_BACKWARD);
+        avcodec_flush_buffers(codecContext_);
+        audioBuffer_.clear();
         currentProgressString_ = secondInFloatToString(musicProgress_ * currentMusicTotalLength_);
     }
 }

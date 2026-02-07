@@ -8,7 +8,7 @@
 #include "WindowIcon.h"
 
 namespace Constants{
-    constexpr const char *SupportedMusicExtensions{".wav;.ogg;.mp3;.qoa;.flac;.xm;.mod"};
+    constexpr const char *SupportedMusicExtensions{".wav;.ogg;.mp3;.flac;.m4a;.mp4"};
 
     constexpr int NumberOfLoopMode{4};
 

@@ -12,6 +12,14 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
+#include <optional>
+#include <vector>
+
+extern "C" {
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libswresample/swresample.h>
+}
 
 class MusicPlayer{
 private:
@@ -20,9 +28,16 @@ private:
     std::recursive_mutex musicMutex_;
 
 private:
-    Music music_{};
-    float musicProgress_;
+    AVFormatContext *formatContext_{nullptr};
+    AVCodecContext *codecContext_{nullptr};
+    SwrContext *swrContext_{nullptr};
+    int audioStreamIndex_{-1};
+    AudioStream audioStream_;
+    bool isAudioStreamInitialized_{false};
+    std::vector<float> audioBuffer_;
 
+    float musicProgress_;
+    float musicTimePlayed_{.0f};
     float currentMusicTotalLength_;
 
     std::string totalLengthString_;

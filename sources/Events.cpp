@@ -50,7 +50,8 @@ void MusicPlayer::handleFileDrop(){
 void MusicPlayer::handleMusicEnd(){
     switch(loopMode_){
     case Constants::LoopMode::No_Loop:{
-        PauseMusicStream(music_); 
+        // PauseMusicStream(music_); 
+        PauseAudioStream(audioStream_);
     } return;
     case Constants::LoopMode::Single_Music_Loop: return;
     case Constants::LoopMode::Directory_Loop_Infinite:{
@@ -61,7 +62,8 @@ void MusicPlayer::handleMusicEnd(){
             goToNextMusic();
 
             if(currentDirectoryIndex_.value() % static_cast<int>(musicDirectory_.count) == startingIndex_.value()){
-                PauseMusicStream(music_);
+                // PauseMusicStream(music_);
+                PauseAudioStream(audioStream_);
                 isManuallyPaused_ = true;
             }
         }
