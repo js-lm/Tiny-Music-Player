@@ -50,26 +50,20 @@ void MusicPlayer::handleFileDrop(){
 void MusicPlayer::handleMusicEnd(){
     switch(loopMode_){
     case Constants::LoopMode::No_Loop:{
-        // PauseMusicStream(music_); 
         PauseAudioStream(audioStream_);
     } return;
-    case Constants::LoopMode::Single_Music_Loop: return;
-    case Constants::LoopMode::Directory_Loop_Infinite:{
-        goToNextMusic();
+    case Constants::LoopMode::Single_Music_Loop:{
+        av_seek_frame(formatContext_, -1, 0, AVSEEK_FLAG_BACKWARD);
+        avcodec_flush_buffers(codecContext_);
+        audioBuffer_.clear();
+        PlayAudioStream(audioStream_);
     } return;
+    case Constants::LoopMode::Directory_Loop_Infinite:
     case Constants::LoopMode::Directory_Loop:{
-        if(currentDirectoryIndex_ && startingIndex_){
-            goToNextMusic();
+        findNextValidMusic(true);
+    } return;
 
-            if(currentDirectoryIndex_.value() % static_cast<int>(musicDirectory_.count) == startingIndex_.value()){
-                // PauseMusicStream(music_);
-                PauseAudioStream(audioStream_);
-                isManuallyPaused_ = true;
-            }
-        }
     }
-    }
-
 }
 
 void MusicPlayer::handleKeyboard(){
@@ -81,7 +75,7 @@ void MusicPlayer::handleNewInstanceOpened(){
         timeSinceLastLockUpdate_ = Constants::LockUpdateFrequency;
 
         if(auto newMusic{Lock::TryGetNewFilePath()}){
-            if(isMusicFile(newMusic.value().c_str())){
+            if(isMediaFile(newMusic.value().c_str())){
                 initMusicStream(newMusic.value().c_str());
             }
         }

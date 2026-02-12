@@ -59,7 +59,7 @@ void MusicPlayer::drawInterface(){
             static_cast<float>(Constants::UI::TextIndentation), 
             static_cast<float>(Constants::UI::SubtitleYPosition)
         };
-        const char* subtitleText{isShowingArtist_ && !displayedArtistName_.empty() 
+        const char *subtitleText{isShowingArtist_ && !displayedArtistName_.empty() 
             ? displayedArtistName_.c_str() 
             : displayedFilePath_.c_str()};
         DrawText(

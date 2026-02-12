@@ -12,8 +12,9 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
-#include <optional>
 #include <vector>
+#include <unordered_set>
+#include <filesystem>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -62,14 +63,13 @@ private:
 private:
     Constants::LoopMode loopMode_{Constants::LoopMode::No_Loop};
 
-    
     bool isShuffling_{false};
-    std::vector<int> shuffleList_;
-
+    std::unordered_set<std::string> playedFiles_;
+    size_t totalFilesInDirectory_{0};
+    
 private:
-    FilePathList musicDirectory_{};
-    std::optional<int> currentDirectoryIndex_;
-    std::optional<int> startingIndex_;
+    std::string currentDirectoryPath_;
+    std::string currentFileName_;
 
 private:
     bool shouldClose_{false};
@@ -118,10 +118,9 @@ private:
 
     bool tryStartMusicStream(const char *filename);
 
-    std::optional<int> initDirectory(const char *path);
     void unloadDirectory();
-    void goToNextMusic();
-    void goToPreviousMusic();
+    void findNextValidMusic(bool isForward = true);
+    // void goToPreviousMusic();
 
 private:
     void handleWindowDrag();
@@ -151,10 +150,7 @@ private:
 
     std::string secondInFloatToString(float second);
 
-    bool isExtensionValid(const char *filename);
-    bool isMusicFile(const char *filename);
-
-    void shuffleMusic();
+    bool isMediaFile(const std::string& path);
 
     Vector2 scaleToDpiVector2(Vector2 values){
         return Vector2{

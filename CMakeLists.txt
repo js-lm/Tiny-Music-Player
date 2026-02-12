@@ -57,10 +57,11 @@ ExternalProject_Add(ffmpeg
         --disable-avfilter
         --disable-network
         --disable-everything
-        --enable-decoder=mp3,mp3float,aac,flac,vorbis,alac,pcm_s16le,pcm_f32le
-        --enable-demuxer=mp3,mov,flac,ogg,wav,aac
-        --enable-parser=mpegaudio,aac,flac,vorbis
+        --enable-decoder=mp1,mp2,mp3,mp3float,aac,flac,vorbis,alac,opus,ape,wavpack,dsd_lsbf,dsd_msbf,dsd_lsbf_planar,dsd_msbf_planar,tta,tak,shorten,ac3,eac3,dca,truehd,mlp,amrnb,amrwb,wmav1,wmav2,wmalossless,ra_144,ra_288,cook,gsm,g722,sbc,aptx,aptx_hd,speex,pcm_s16le,pcm_f32le,pcm_s16be,pcm_s24be,pcm_s32be,pcm_f64le,pcm_u8,pcm_alaw,pcm_mulaw,adpcm_g722,adpcm_g726,adpcm_ima_wav,adpcm_ms,adpcm_yamaha,adpcm_adx
+        --enable-demuxer=mp3,mov,flac,ogg,wav,aac,opus,ape,wv,matroska,dsf,tta,tak,shorten,ac3,eac3,dts,dtshd,truehd,amr,asf,rm,flv,avi,nut,mpegts,caf,au,voc,w64,spx,webm,aiff,ircam,mlp,sbc,g722,gsm,adx,aptx
+        --enable-parser=mpegaudio,aac,aac_latm,flac,vorbis,opus,ac3,dca,cook
         --enable-protocol=file
+        --disable-bzlib
         --disable-vaapi
         --disable-vdpau
         --disable-libdrm

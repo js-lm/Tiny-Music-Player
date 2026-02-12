@@ -8,6 +8,8 @@
 #include <random>
 #include <algorithm>
 #include <iostream>
+#include <random>
+#include <algorithm>
 #include <cstring>
 
 #include <raymath.h>
@@ -64,7 +66,7 @@ void MusicPlayer::initIconsTexture(){
 
 
     for(size_t row{0}; row < Constants::Icons::NumberOfRows; row++){
-        const auto &bitsetRow{Constants::Icons::IconsBitset[row]};
+        const std::bitset<Constants::Icons::NumberOfColumns> &bitsetRow{Constants::Icons::IconsBitset[row]};
         for(size_t column{0}; column < Constants::Icons::NumberOfColumns; column++){
             if(bitsetRow.test(column)){
                 // ImageDrawPixel(&iconsImage, column, row, Constants::Icons::NormalColor);
@@ -105,12 +107,17 @@ void MusicPlayer::initWindowIcon(){
 void MusicPlayer::updateMusic(){
     std::lock_guard<std::recursive_mutex> lock{musicMutex_};
     
-    // if(!IsMusicValid(music_)) return;
+    // if(!pendingNextMusicPath_.empty()){
+    //     std::string nextPath{pendingNextMusicPath_};
+    //     pendingNextMusicPath_.clear();
+    //     tryStartMusicStream(nextPath.c_str());
+    // }
+    
     if(formatContext_ == nullptr) return;
 
     // UpdateMusicStream(music_);
 
-    auto musicTimePlayed{musicTimePlayed_};
+    float musicTimePlayed{musicTimePlayed_};
     
     // musicProgress_ = musicTimePlayed / currentMusicTotalLength_;
     // currentProgressString_ = secondInFloatToString(musicTimePlayed);
@@ -155,19 +162,6 @@ void MusicPlayer::resetMusicState(){
     displayedFilePath_ = displayedMusicTitle_;
 }
 
-void MusicPlayer::shuffleMusic(){
-    if(musicDirectory_.count <= 0) return;
-
-    shuffleList_.clear();
-
-    for(unsigned int i{0}; i < musicDirectory_.count; i++){
-        shuffleList_.emplace_back(i);
-    }
-
-    std::random_device randomDevice;
-    std::mt19937 generator(randomDevice());
-    std::shuffle(shuffleList_.begin(), shuffleList_.end(), generator);
-}
 
 void MusicPlayer::tryUnloadMusic(){
     // if(IsMusicValid(music_)){
@@ -190,46 +184,74 @@ void MusicPlayer::tryUnloadMusic(){
     }
 }
 
-std::optional<int> MusicPlayer::initDirectory(const char *path){
-    if(!FileExists(path) && !DirectoryExists(path)) return std::nullopt;
-
-    auto directoryPath{path};
-    
-    if(IsPathFile(path)){
-        if(!isExtensionValid(path)) return std::nullopt;
-        
-        directoryPath = GetDirectoryPath(path);
-    }
+void MusicPlayer::initMusicStream(const char *path){
+    if(!FileExists(path) && !DirectoryExists(path)) return;
     
     unloadDirectory();
-    musicDirectory_ = LoadDirectoryFilesEx(
-        directoryPath, Constants::SupportedMusicExtensions, false
-    );
-    if(musicDirectory_.count <= 0) return std::nullopt;
     
-    for(int i{0}; i < static_cast<int>(musicDirectory_.count); i++){
-        if(strcmp(musicDirectory_.paths[i], path) == 0){
-            return i;
-        }
+    std::string directoryPath{path};
+    if(IsPathFile(path)){
+        directoryPath = GetDirectoryPath(path);
+        currentFileName_ = GetFileName(path);
+    }else{
+        currentFileName_ = "";
     }
-
-    return 0;
-}
-
-void MusicPlayer::initMusicStream(const char *path){
-    auto index{initDirectory(path)};
-    if(!index) return;
-    currentDirectoryIndex_ = startingIndex_ = index;
-    tryStartMusicStream(musicDirectory_.paths[index.value()]);
+    
+    currentDirectoryPath_ = directoryPath;
+    
+    totalFilesInDirectory_ = 0;
+    try{
+        for(const auto &entry : std::filesystem::directory_iterator(currentDirectoryPath_)){
+            if(entry.is_regular_file()) totalFilesInDirectory_++;
+        }
+    }catch(...) {}
+    
+    if(!currentFileName_.empty()){
+        tryStartMusicStream(path);
+    }else{
+        findNextValidMusic(true);
+    }
 }
 
 void MusicPlayer::unloadDirectory(){
-    if(musicDirectory_.count <= 0) return;
-    UnloadDirectoryFiles(musicDirectory_);
-    musicDirectory_ = FilePathList{};
-    currentDirectoryIndex_.reset();
+    currentDirectoryPath_.clear();
+    currentFileName_.clear();
+    playedFiles_.clear();
+    totalFilesInDirectory_ = 0;
     resetMusicState();
-    shuffleList_.clear();
+}
+
+bool MusicPlayer::isMediaFile(const std::string &path){
+    auto dotPosition{path.rfind('.')};
+    if(dotPosition != std::string::npos){
+        std::string extension{path.substr(dotPosition)};
+        std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+        for(const auto &audioExtension : Constants::SupportedMusicExtensions){
+            if(extension == audioExtension) return true;
+        }
+    }
+
+    // fallback
+    AVFormatContext *formatContext{avformat_alloc_context()};
+    if(!formatContext) return false;
+
+    if(avformat_open_input(&formatContext, path.c_str(), nullptr, nullptr) == 0){
+        bool hasAudioStream{false};
+        if(avformat_find_stream_info(formatContext, nullptr) >= 0){
+            for(unsigned int i{0}; i < formatContext->nb_streams; i++){
+                if(formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO){
+                    hasAudioStream = true;
+                    break;
+                }
+            }
+        }
+        avformat_close_input(&formatContext);
+        return hasAudioStream;
+    }
+    
+    if(formatContext) avformat_free_context(formatContext);
+    return false;
 }
 
 bool MusicPlayer::tryStartMusicStream(const char *filename){
@@ -316,84 +338,84 @@ bool MusicPlayer::tryStartMusicStream(const char *filename){
     displayedMusicTitle_ = titleEntry ? titleEntry->value : GetFileName(filename);
     displayedArtistName_ = artistEntry ? artistEntry->value : displayedMusicTitle_;
     displayedFilePath_ = filename;
+    currentFileName_ = GetFileName(filename);
 
     return true;
 }
 
-void MusicPlayer::goToNextMusic(){
-    if(musicDirectory_.count <= 0 || !currentDirectoryIndex_) return;
+void MusicPlayer::findNextValidMusic(bool isForward){
+    if(currentDirectoryPath_.empty()) return;
 
-    bool hasIteratedTheEntireDirectory{false};
-    int startIndex{currentDirectoryIndex_.value()};
+    std::vector<std::string> files;
+    try{
+        for(const auto &entry : std::filesystem::directory_iterator(currentDirectoryPath_)){
+            if(entry.is_regular_file()) files.push_back(entry.path().filename().string());
+        }
+    } catch(...) { return; }
 
-    char *currentPath;
+    if(files.empty()) return;
 
-    do{
-        if(++currentDirectoryIndex_.value() >= static_cast<int>(musicDirectory_.count)){
-            currentDirectoryIndex_.value() = 0;
+    std::vector<std::string> mediaFiles;
+    for(const auto &file : files){
+        if(isMediaFile(file)) mediaFiles.push_back(file);
+    }
+
+    if(mediaFiles.empty()) return;
+
+    if(isShuffling_){
+        if(!currentFileName_.empty()) playedFiles_.insert(currentFileName_);
+
+        std::vector<std::string> unplayedFiles;
+        for(const auto &file : mediaFiles){
+            if(playedFiles_.find(file) == playedFiles_.end()){
+                unplayedFiles.push_back(file);
+            }
         }
 
-        hasIteratedTheEntireDirectory = currentDirectoryIndex_.value() == startIndex;
-
-        if(isShuffling_){
-            if(shuffleList_.size() != musicDirectory_.count) shuffleMusic();
-
-            currentPath = musicDirectory_.paths[shuffleList_[currentDirectoryIndex_.value()]];
-        }else{
-            currentPath = musicDirectory_.paths[currentDirectoryIndex_.value()];
+        if(unplayedFiles.empty()){
+            playedFiles_.clear();
+            if(!currentFileName_.empty()) playedFiles_.insert(currentFileName_);
+            unplayedFiles = mediaFiles;
         }
-    }while(!isMusicFile(currentPath) && !hasIteratedTheEntireDirectory);
 
-    if(!hasIteratedTheEntireDirectory){
-        tryStartMusicStream(currentPath);
+        std::random_device randomDevice;
+        std::mt19937 generator{randomDevice()};
+        std::shuffle(unplayedFiles.begin(), unplayedFiles.end(), generator);
+
+        for(const auto &candidate : unplayedFiles){
+            std::string fullPath{currentDirectoryPath_ + "/" + candidate};
+            if(tryStartMusicStream(fullPath.c_str())){
+                playedFiles_.insert(candidate);
+                return;
+            }
+        }
     }else{
-        unloadDirectory();
-    }
-}
+        std::sort(mediaFiles.begin(), mediaFiles.end(), [](const std::string &a, const std::string &b){
+            std::string aLower{a};
+            std::string bLower{b};
+            std::transform(aLower.begin(), aLower.end(), aLower.begin(), ::tolower);
+            std::transform(bLower.begin(), bLower.end(), bLower.begin(), ::tolower);
+            return aLower < bLower;
+        });
 
-void MusicPlayer::goToPreviousMusic(){
-    if(musicDirectory_.count <= 0 || !currentDirectoryIndex_) return;
+        int totalMediaFiles{static_cast<int>(mediaFiles.size())};
 
-    bool hasIteratedTheEntireDirectory{false};
-    int startIndex{currentDirectoryIndex_.value()};
-
-    char *currentPath;
-
-    do{
-        if(--currentDirectoryIndex_.value() < 0){
-            currentDirectoryIndex_.value() = musicDirectory_.count - 1;
+        int currentIndex{0};
+        for(int i{0}; i < totalMediaFiles; i++){
+            if(mediaFiles[i] == currentFileName_){
+                currentIndex = i;
+                break;
+            }
         }
 
-        hasIteratedTheEntireDirectory = currentDirectoryIndex_.value() == startIndex;
-
-        currentPath = musicDirectory_.paths[currentDirectoryIndex_.value()];
-    }while(!isMusicFile(currentPath) && !hasIteratedTheEntireDirectory);
-
-    if(!hasIteratedTheEntireDirectory){
-        tryStartMusicStream(currentPath);
-    }else{
-        unloadDirectory();
+        for(int i{1}; i <= totalMediaFiles; i++){
+            int nextIndex{(currentIndex + (isForward ? i : -i) + totalMediaFiles) % totalMediaFiles};
+            std::string fullPath{currentDirectoryPath_ + "/" + mediaFiles[nextIndex]};
+            if(tryStartMusicStream(fullPath.c_str())) return;
+        }
     }
 }
 
-bool MusicPlayer::isExtensionValid(const char *filename){
-    return IsFileExtension(filename, Constants::SupportedMusicExtensions);
-}
-
-bool MusicPlayer::isMusicFile(const char *filename){
-    if(!FileExists(filename) || !isExtensionValid(filename)) return false;
-
-    // auto music{LoadSound(filename)};
-    // if(IsSoundValid(music)){
-    //     UnloadSound(music);
-    auto music{LoadMusicStream(filename)};
-    if(IsMusicValid(music)){
-        UnloadMusicStream(music);
-        return true;
-    }
-
-    return false;
-}
 
 std::optional<std::string> MusicPlayer::getArgumentPath(int argumentCount, char *arguments[]){
     if(argumentCount <= 1) return std::nullopt;

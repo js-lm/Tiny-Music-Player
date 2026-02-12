@@ -32,7 +32,7 @@ void MusicPlayer::goToFileClicked(){
 
 void MusicPlayer::toggleShuffleClicked(){
     isShuffling_ = !isShuffling_;
-    if(isShuffling_) shuffleMusic();
+    if(isShuffling_) playedFiles_.clear();
 }
 
 void MusicPlayer::previousSongClicked(){
@@ -40,12 +40,14 @@ void MusicPlayer::previousSongClicked(){
     //     if(GetMusicTimePlayed(music_) < 1.0f){
     if(formatContext_ != nullptr){
         if(musicProgress_ * currentMusicTotalLength_ < 1.0f){
-            goToPreviousMusic();
+            findNextValidMusic(false);
         }else{
             // PlayMusicStream(music_);
             av_seek_frame(formatContext_, -1, 0, AVSEEK_FLAG_BACKWARD);
             avcodec_flush_buffers(codecContext_);
             audioBuffer_.clear();
+            musicTimePlayed_ = .0f;
+            PlayAudioStream(audioStream_);
             currentProgressString_ = secondInFloatToString(.0f);
         }
     }
@@ -63,7 +65,7 @@ void MusicPlayer::playPauseMusicClicked(){
 }
 
 void MusicPlayer::nextSongClicked(){
-    goToNextMusic();
+    findNextValidMusic(true);
 }
 
 void MusicPlayer::toggleLoopClicked(bool isForward){

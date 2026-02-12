@@ -4,11 +4,19 @@
 
 #include <bitset>
 #include <ctime>
+#include <vector>
+#include <string>
 
 #include "WindowIcon.h"
 
 namespace Constants{
-    constexpr const char *SupportedMusicExtensions{".wav;.ogg;.mp3;.flac;.m4a;.mp4"};
+    inline const std::vector<std::string> SupportedMusicExtensions{
+        ".3g2", ".3gp", ".aac", ".ac3", ".adx", ".aif", ".aifc", ".aiff", ".amr", ".aptx",
+        ".asf", ".au", ".avi", ".caf", ".dts", ".eac3", ".flac", ".flv", ".g722", ".gsm",
+        ".m2a", ".m4a", ".m4b", ".mka", ".mkv", ".mlp", ".mov", ".mp2", ".mp3", ".mp4",
+        ".mpa", ".nut", ".oga", ".ogg", ".opus", ".ra", ".rm", ".sbc", ".spx", ".thd",
+        ".ts", ".voc", ".w64", ".wav", ".webm", ".wma", ".wv"
+    };
 
     constexpr int NumberOfLoopMode{4};
 
