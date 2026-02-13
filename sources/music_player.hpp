@@ -7,7 +7,7 @@
 #include <optional>
 #include <vector>
 
-#include <Constants.hpp>
+#include "constants.hpp"
 
 #include <thread>
 #include <atomic>
@@ -36,6 +36,8 @@ private:
     AudioStream audioStream_;
     bool isAudioStreamInitialized_{false};
     std::vector<float> audioBuffer_;
+    int seekGeneration_{0};
+    int audioThreadSeekGeneration_{0};
 
     float musicProgress_;
     float musicTimePlayed_{.0f};

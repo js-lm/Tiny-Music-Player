@@ -1,6 +1,6 @@
-#include "MusicPlayer.hpp"
+#include "music_player.hpp"
 
-#include "Lock.hpp"
+#include "lock.hpp"
 
 #include <raylib.h>
 #include <raymath.h>

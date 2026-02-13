@@ -1,6 +1,8 @@
-#include "MusicPlayer.hpp"
+#include "music_player.hpp"
 
-#include "Constants.hpp"
+#include "constants.hpp"
+
+#include "debug_utilities.hpp"
 
 void MusicPlayer::drawInterface(){
     std::lock_guard<std::recursive_mutex> lock{musicMutex_};
@@ -109,6 +111,13 @@ void MusicPlayer::drawInterface(){
             if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
                 wasPausing_ = !IsAudioStreamPlaying(audioStream_);
                 isCurrentlyInteractingWithProgressBar_ = true;
+                
+                // seem like GuiSliderBar does not update the value on the first press frame,
+                // only on subsequent frames. So I manually set it from the mouse position here
+                float clickedProgress{(mousePosition.x - progressBarRectangle.x) / progressBarRectangle.width};
+                if(clickedProgress < .0f) clickedProgress = .0f;
+                if(clickedProgress > 1.0f) clickedProgress = 1.0f;
+                musicProgress_ = clickedProgress;
             }
         }
         
@@ -117,6 +126,7 @@ void MusicPlayer::drawInterface(){
         }
         
         if(IsMouseButtonReleased(MOUSE_BUTTON_LEFT) && isCurrentlyInteractingWithProgressBar_){
+            DEBUG_PRINT("[Interface] Released! musicProgress_={:.4f} oldProgress={:.4f}", musicProgress_, oldProgress);
             isCurrentlyInteractingWithProgressBar_ = false;
             // if(musicProgress_ != oldProgress){
                 progressBarClicked();

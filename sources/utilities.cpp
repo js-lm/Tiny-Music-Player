@@ -1,7 +1,10 @@
-#include "MusicPlayer.hpp"
+#include "music_player.hpp"
 
-#include "Constants.hpp"
-#include "Lock.hpp"
+#include "constants.hpp"
+
+#include "lock.hpp"
+
+#include "debug_utilities.hpp"
 
 #include <sstream>
 #include <iomanip>
@@ -122,13 +125,17 @@ void MusicPlayer::updateMusic(){
     // musicProgress_ = musicTimePlayed / currentMusicTotalLength_;
     // currentProgressString_ = secondInFloatToString(musicTimePlayed);
     if(!isCurrentlyInteractingWithProgressBar_){
+        DEBUG_PRINT_IF_CHANGED("[updateMusic] overwriting musicProgress_={:.4f} with musicTimePlayed={:.4f}", musicProgress_, musicTimePlayed);
         musicProgress_ = musicTimePlayed / currentMusicTotalLength_;
         currentProgressString_ = secondInFloatToString(musicTimePlayed);
     }else{
         currentProgressString_ = secondInFloatToString(musicProgress_ * currentMusicTotalLength_);
     }
 
-    if(!IsAudioStreamPlaying(audioStream_) && !isManuallyPaused_ && !isCurrentlyInteractingWithProgressBar_) handleMusicEnd();    
+    if(!IsAudioStreamPlaying(audioStream_) && !isManuallyPaused_ && !isCurrentlyInteractingWithProgressBar_){
+        DEBUG_PRINT("[updateMusic] handleMusicEnd triggered! isPlaying={} isManuallyPaused={} isInteracting={}", IsAudioStreamPlaying(audioStream_), isManuallyPaused_, isCurrentlyInteractingWithProgressBar_);
+        handleMusicEnd();
+    }
 }
 
 std::string MusicPlayer::secondInFloatToString(float second){
@@ -204,7 +211,7 @@ void MusicPlayer::initMusicStream(const char *path){
         for(const auto &entry : std::filesystem::directory_iterator(currentDirectoryPath_)){
             if(entry.is_regular_file()) totalFilesInDirectory_++;
         }
-    }catch(...) {}
+    }catch(...){}
     
     if(!currentFileName_.empty()){
         tryStartMusicStream(path);
@@ -351,7 +358,7 @@ void MusicPlayer::findNextValidMusic(bool isForward){
         for(const auto &entry : std::filesystem::directory_iterator(currentDirectoryPath_)){
             if(entry.is_regular_file()) files.push_back(entry.path().filename().string());
         }
-    } catch(...) { return; }
+    } catch(...){ return;}
 
     if(files.empty()) return;
 

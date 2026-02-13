@@ -1,8 +1,11 @@
 #define RAYGUI_IMPLEMENTATION
-#include "MusicPlayer.hpp"
+#include "music_player.hpp"
 
-#include "Constants.hpp"
-#include "Lock.hpp"
+#include "constants.hpp"
+
+#include "lock.hpp"
+
+#include "debug_utilities.hpp"
 
 extern "C" void glfwPostEmptyEvent(void);
 
@@ -114,7 +117,12 @@ void MusicPlayer::init(){
                                         
                             
                                         if(packet->pts != AV_NOPTS_VALUE){
-                                            this->musicTimePlayed_ = static_cast<float>(packet->pts) * av_q2d(this->formatContext_->streams[this->audioStreamIndex_]->time_base);
+                                            float packetTime{static_cast<float>(packet->pts) * av_q2d(this->formatContext_->streams[this->audioStreamIndex_]->time_base)};
+                                            if(this->audioThreadSeekGeneration_ == this->seekGeneration_){
+                                                this->musicTimePlayed_ = packetTime;
+                                            }else{
+                                                DEBUG_PRINT("[audioThread] SKIPPED PTS update: packetTime={:.4f} (gen {} != {})", packetTime, this->audioThreadSeekGeneration_, this->seekGeneration_);
+                                            }
                                         }
                                         
                                         av_freep(&output);
@@ -136,6 +144,7 @@ void MusicPlayer::init(){
                         if(this->audioBuffer_.size() >= samplesNeeded){
                             UpdateAudioStream(this->audioStream_, this->audioBuffer_.data(), framesNeeded);
                             this->audioBuffer_.erase(this->audioBuffer_.begin(), this->audioBuffer_.begin() + samplesNeeded);
+                            this->audioThreadSeekGeneration_ = this->seekGeneration_;
                         
                         }else if(!this->audioBuffer_.empty()){
                             UpdateAudioStream(this->audioStream_, this->audioBuffer_.data(), this->audioBuffer_.size() / 2);

@@ -1,4 +1,6 @@
-#include "MusicPlayer.hpp"
+#include "music_player.hpp"
+
+#include "debug_utilities.hpp"
 
 #include <stdlib.h>
 
@@ -82,11 +84,26 @@ void MusicPlayer::toggleLoopClicked(bool isForward){
 
 void MusicPlayer::progressBarClicked(){
     if(formatContext_ != nullptr){
-        int64_t targetPts{static_cast<int64_t>((musicProgress_ * currentMusicTotalLength_) * AV_TIME_BASE)};
-        av_seek_frame(formatContext_, -1, targetPts, AVSEEK_FLAG_BACKWARD);
+        int64_t targetPresentationTimestamp{static_cast<int64_t>(
+            (musicProgress_ * currentMusicTotalLength_)
+          / av_q2d(formatContext_->streams[audioStreamIndex_]->time_base)
+        )};
+        
+        DEBUG_PRINT("[progressBarClicked] musicProgress_={:.4f} targetTime={:.4f}", musicProgress_, musicProgress_ * currentMusicTotalLength_);
+        
+        int seekResult{av_seek_frame(formatContext_, audioStreamIndex_, targetPresentationTimestamp, AVSEEK_FLAG_ANY)};
+        DEBUG_PRINT("[progressBarClicked] av_seek_frame returned {}", seekResult);
+        
         avcodec_flush_buffers(codecContext_);
+        swr_init(swrContext_);
         audioBuffer_.clear();
-        currentProgressString_ = secondInFloatToString(musicProgress_ * currentMusicTotalLength_);
+        musicTimePlayed_ = musicProgress_ * currentMusicTotalLength_;
+        currentProgressString_ = secondInFloatToString(musicTimePlayed_);
+        seekGeneration_++;
+        
+        bool wasPlaying{IsAudioStreamPlaying(audioStream_)};
+        StopAudioStream(audioStream_);
+        if(wasPlaying) PlayAudioStream(audioStream_);
     }
 }
 

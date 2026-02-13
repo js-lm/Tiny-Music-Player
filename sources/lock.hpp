@@ -10,7 +10,7 @@
 #include <cstdio>
 #include <filesystem>
 
-#include "Constants.hpp"
+#include "constants.hpp"
 
 namespace Lock{
 
