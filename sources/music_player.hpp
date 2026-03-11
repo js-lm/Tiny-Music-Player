@@ -121,7 +121,7 @@ private:
     bool tryStartMusicStream(const char *filename);
 
     void unloadDirectory();
-    void findNextValidMusic(bool isForward = true);
+    bool findNextValidMusic(bool isForward = true, bool allowLoop = true);
     // void goToPreviousMusic();
 
 private:

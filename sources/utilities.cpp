@@ -350,24 +350,24 @@ bool MusicPlayer::tryStartMusicStream(const char *filename){
     return true;
 }
 
-void MusicPlayer::findNextValidMusic(bool isForward){
-    if(currentDirectoryPath_.empty()) return;
+bool MusicPlayer::findNextValidMusic(bool isForward, bool allowLoop){
+    if(currentDirectoryPath_.empty()) return false;
 
     std::vector<std::string> files;
     try{
         for(const auto &entry : std::filesystem::directory_iterator(currentDirectoryPath_)){
             if(entry.is_regular_file()) files.push_back(entry.path().filename().string());
         }
-    } catch(...){ return;}
+    }catch(...){ return false;}
 
-    if(files.empty()) return;
+    if(files.empty()) return false;
 
     std::vector<std::string> mediaFiles;
     for(const auto &file : files){
         if(isMediaFile(file)) mediaFiles.push_back(file);
     }
 
-    if(mediaFiles.empty()) return;
+    if(mediaFiles.empty()) return false;
 
     if(isShuffling_){
         if(!currentFileName_.empty()) playedFiles_.insert(currentFileName_);
@@ -380,6 +380,7 @@ void MusicPlayer::findNextValidMusic(bool isForward){
         }
 
         if(unplayedFiles.empty()){
+            if(!allowLoop) return false;
             playedFiles_.clear();
             if(!currentFileName_.empty()) playedFiles_.insert(currentFileName_);
             unplayedFiles = mediaFiles;
@@ -393,7 +394,7 @@ void MusicPlayer::findNextValidMusic(bool isForward){
             std::string fullPath{currentDirectoryPath_ + "/" + candidate};
             if(tryStartMusicStream(fullPath.c_str())){
                 playedFiles_.insert(candidate);
-                return;
+                return true;
             }
         }
     }else{
@@ -416,11 +417,16 @@ void MusicPlayer::findNextValidMusic(bool isForward){
         }
 
         for(int i{1}; i <= totalMediaFiles; i++){
-            int nextIndex{(currentIndex + (isForward ? i : -i) + totalMediaFiles) % totalMediaFiles};
+            int nextIndexRaw{currentIndex + (isForward ? i : -i)};
+            if(!allowLoop && (nextIndexRaw < 0 || nextIndexRaw >= totalMediaFiles)){
+                return false;
+            }
+            int nextIndex{(nextIndexRaw + totalMediaFiles) % totalMediaFiles};
             std::string fullPath{currentDirectoryPath_ + "/" + mediaFiles[nextIndex]};
-            if(tryStartMusicStream(fullPath.c_str())) return;
+            if(tryStartMusicStream(fullPath.c_str())) return true;
         }
     }
+    return false;
 }
 
 

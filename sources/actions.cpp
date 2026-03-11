@@ -60,6 +60,17 @@ void MusicPlayer::playPauseMusicClicked(){
         PauseAudioStream(audioStream_);
         isManuallyPaused_ = true;
     }else{
+        if(musicProgress_ >= 0.999f && formatContext_ != nullptr){
+            if(loopMode_ == Constants::LoopMode::Directory_Loop){
+                findNextValidMusic(true, true);
+            }else{
+                av_seek_frame(formatContext_, -1, 0, AVSEEK_FLAG_BACKWARD);
+                avcodec_flush_buffers(codecContext_);
+                audioBuffer_.clear();
+                musicTimePlayed_ = .0f;
+                currentProgressString_ = secondInFloatToString(.0f);
+            }
+        }
         ResumeAudioStream(audioStream_);
         if(!IsAudioStreamPlaying(audioStream_) && formatContext_ != nullptr) PlayAudioStream(audioStream_);
         isManuallyPaused_ = false;

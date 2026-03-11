@@ -50,7 +50,8 @@ void MusicPlayer::handleFileDrop(){
 void MusicPlayer::handleMusicEnd(){
     switch(loopMode_){
     case Constants::LoopMode::No_Loop:{
-        PauseAudioStream(audioStream_);
+        // PauseAudioStream(audioStream_);
+        isManuallyPaused_ = true;
     } return;
     case Constants::LoopMode::Single_Music_Loop:{
         av_seek_frame(formatContext_, -1, 0, AVSEEK_FLAG_BACKWARD);
@@ -58,9 +59,13 @@ void MusicPlayer::handleMusicEnd(){
         audioBuffer_.clear();
         PlayAudioStream(audioStream_);
     } return;
-    case Constants::LoopMode::Directory_Loop_Infinite:
+    case Constants::LoopMode::Directory_Loop_Infinite:{
+        findNextValidMusic(true, true);
+    } return;
     case Constants::LoopMode::Directory_Loop:{
-        findNextValidMusic(true);
+        if(!findNextValidMusic(true, false)){
+            isManuallyPaused_ = true;
+        }
     } return;
 
     }
