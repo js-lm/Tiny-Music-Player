@@ -71,6 +71,19 @@ namespace Constants{
         
         constexpr Color SubtitleColor{128, 128, 128, 255};
 
+        constexpr float ProgressBarHoverIndicatorWidth{2.0f};
+        constexpr float ProgressBarHoverIndicatorXOffset{1.0f};
+
+        constexpr float TooltipHeightPadding{8.0f};
+        constexpr float TooltipWidthPadding{16.0f};
+        constexpr float TooltipYOffset{12.0f};
+        constexpr float TooltipFallbackYOffset{16.0f};
+
+        constexpr const char *TooltipNoLoop{"No Loop"};
+        constexpr const char *TooltipSingleMusicLoop{"Single Music Loop"};
+        constexpr const char *TooltipDirectoryLoop{"Directory Loop"};
+        constexpr const char *TooltipDirectoryLoopInfinite{"Directory Loop Infinite"};
+
     } // namespace UI
 
     namespace WindowIcon{

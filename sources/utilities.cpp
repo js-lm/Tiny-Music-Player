@@ -343,7 +343,7 @@ bool MusicPlayer::tryStartMusicStream(const char *filename){
     AVDictionaryEntry *artistEntry{av_dict_get(formatContext_->metadata, "artist", nullptr, 0)};
     
     displayedMusicTitle_ = titleEntry ? titleEntry->value : GetFileName(filename);
-    displayedArtistName_ = artistEntry ? artistEntry->value : displayedMusicTitle_;
+    displayedArtistName_ = artistEntry ? artistEntry->value : "";
     displayedFilePath_ = filename;
     currentFileName_ = GetFileName(filename);
 

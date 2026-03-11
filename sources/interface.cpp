@@ -7,6 +7,7 @@
 void MusicPlayer::drawInterface(){
     std::lock_guard<std::recursive_mutex> lock{musicMutex_};
     isAnyWidgetHovered_ = false;
+    std::string activeTooltip;
     
     const int screenWidth{Constants::System::WindowWidth};
     const int screenHeight{Constants::System::WindowHeight};
@@ -102,11 +103,42 @@ void MusicPlayer::drawInterface(){
         // if(!IsMusicValid(music_)) GuiDisable();
         if(formatContext_ == nullptr) GuiDisable();
         
+        Vector2 mousePosition{GetMousePosition()};
+        bool isHoveringProgressBar{CheckCollisionPointRec(mousePosition, progressBarRectangle) && (formatContext_ != nullptr)};
+        
+        // std::string tooltipString;
+        // if(isHoveringProgressBar && currentMusicTotalLength_ > 0){
+        //     float hoveredProgress{(mousePosition.x - progressBarRectangle.x) / progressBarRectangle.width};
+        //     if(hoveredProgress < .0f) hoveredProgress = .0f;
+        //     if(hoveredProgress > 1.0f) hoveredProgress = 1.0f;
+        //     tooltipString = secondInFloatToString(hoveredProgress * currentMusicTotalLength_);
+        //     GuiEnableTooltip();
+        //     GuiSetTooltip(tooltipString.c_str());
+        // }
+        
         float oldProgress{musicProgress_};
         GuiSliderBar(progressBarRectangle, "", "", &musicProgress_, .0f, 1.0f);
         
-        Vector2 mousePosition{GetMousePosition()};
-        if(CheckCollisionPointRec(mousePosition, progressBarRectangle)){
+        if(isHoveringProgressBar && currentMusicTotalLength_ > 0){
+            // GuiDisableTooltip();
+            // GuiSetTooltip(nullptr);
+            
+            float hoveredProgress{(mousePosition.x - progressBarRectangle.x) / progressBarRectangle.width};
+            if(hoveredProgress < .0f) hoveredProgress = .0f;
+            if(hoveredProgress > 1.0f) hoveredProgress = 1.0f;
+            
+            Rectangle hoverIndicatorRectangle{
+                progressBarRectangle.x + hoveredProgress * progressBarRectangle.width - Constants::UI::ProgressBarHoverIndicatorXOffset,
+                progressBarRectangle.y,
+                Constants::UI::ProgressBarHoverIndicatorWidth,
+                progressBarRectangle.height
+            };
+            DrawRectangleRec(hoverIndicatorRectangle, WHITE);
+            
+            activeTooltip = secondInFloatToString(hoveredProgress * currentMusicTotalLength_);
+        }
+        
+        if(isHoveringProgressBar){
             isAnyWidgetHovered_ = true;
             if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
                 wasPausing_ = !IsAudioStreamPlaying(audioStream_);
@@ -217,8 +249,44 @@ void MusicPlayer::drawInterface(){
         if(drawImageButton(loopIcon, loopRectangle)) toggleLoopClicked();
         
         Vector2 mousePosition{GetMousePosition()};
-        if(CheckCollisionPointRec(mousePosition, loopRectangle) && IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)){
-            toggleLoopClicked(false);
+        if(CheckCollisionPointRec(mousePosition, loopRectangle)){
+            isAnyWidgetHovered_ = true;
+            if(IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)){
+                toggleLoopClicked(false);
+            }
+            switch(loopMode_){
+            case Constants::LoopMode::No_Loop:                  activeTooltip = Constants::UI::TooltipNoLoop; break;
+            case Constants::LoopMode::Single_Music_Loop:        activeTooltip = Constants::UI::TooltipSingleMusicLoop; break;
+            case Constants::LoopMode::Directory_Loop:           activeTooltip = Constants::UI::TooltipDirectoryLoop; break;
+            case Constants::LoopMode::Directory_Loop_Infinite:  activeTooltip = Constants::UI::TooltipDirectoryLoopInfinite; break;
+            }
         }
     } /* Music Controls */
+    
+    if(!activeTooltip.empty()){
+        Vector2 mousePosition{GetMousePosition()};
+        Vector2 tooltipTextSize{MeasureTextEx(GuiGetFont(), activeTooltip.c_str(), GuiGetStyle(DEFAULT, TEXT_SIZE), GuiGetStyle(DEFAULT, TEXT_SPACING))};
+        float tooltipHeight{GuiGetStyle(DEFAULT, TEXT_SIZE) + Constants::UI::TooltipHeightPadding};
+        float tooltipWidth{tooltipTextSize.x + Constants::UI::TooltipWidthPadding};
+        
+        Rectangle tooltipRectangle{
+            mousePosition.x - tooltipWidth / 2.0f,
+            mousePosition.y - tooltipHeight - Constants::UI::TooltipYOffset,
+            tooltipWidth,
+            tooltipHeight
+        };
+        
+        if(tooltipRectangle.x < 0) tooltipRectangle.x = 0;
+        if(tooltipRectangle.x + tooltipWidth > GetScreenWidth()) tooltipRectangle.x = GetScreenWidth() - tooltipWidth;
+        if(tooltipRectangle.y < 0) tooltipRectangle.y = mousePosition.y + Constants::UI::TooltipFallbackYOffset;
+        
+        GuiPanel(tooltipRectangle, nullptr);
+        int previousTextAlignment{GuiGetStyle(LABEL, TEXT_ALIGNMENT)};
+        int previousTextPadding{GuiGetStyle(LABEL, TEXT_PADDING)};
+        GuiSetStyle(LABEL, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+        GuiSetStyle(LABEL, TEXT_PADDING, 0);
+        GuiLabel(tooltipRectangle, activeTooltip.c_str());
+        GuiSetStyle(LABEL, TEXT_ALIGNMENT, previousTextAlignment);
+        GuiSetStyle(LABEL, TEXT_PADDING, previousTextPadding);
+    }
 }
