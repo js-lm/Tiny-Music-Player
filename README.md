@@ -1,22 +1,58 @@
 # Tiny Music Player
 
-A simple, lightweight, and cross platform music player built with C++, [raylib](https://www.raylib.com/), and [ImGui](https://github.com/ocornut/imgui).
+A bloat-free music player built with C++ and [raylib](https://www.raylib.com/).
 
-<img width="600" height="160" alt="Screenshot from 2025-07-28 22-46-34" src="https://github.com/user-attachments/assets/92d25dec-885b-4fed-ba03-7fa2a645b14b" />
+![Tiny Music Player](documents/thumbnail.png)
+
+## About The Project
+
+This program is mainly for my personal use. Currently, it only supports Linux.
+
+The main motivation for creating this program is that I wanted something dead simple: I just click a music file, and it plays.
+
+Before this, I was using [Decibels](https://apps.gnome.org/Decibels/). It was great, but the problem was that it launched music in a new instance, and I had no way to configure it. Also, while I don't want a full-blown playlist like [Amberol](https://apps.gnome.org/Amberol/), I do want the ability to navigate files in the current directory. So, I created this program specifically to meet my needs.
 
 ## Features
 
-  * Supports `.wav`, `.ogg`, `.mp3`, `.qoa`, `.flac`, `.xm`, and `.mod`.
-  * Minimalist UI
-  * Four different loop modes: no loop, loop single track, loop directory, and loop directory infinitely.
-  * Middle click the file path to open the song's containing folder.
-  * Drag and drop an audio file onto the window to play it.
+- Supports pretty much all common audio formats (thanks to FFmpeg).
+- No bloat (not even playlists), just the basic controls and a simple directory loop feature.
 
-<img width="2880" height="1920" alt="Screenshot From 2025-07-28 22-45-48" src="https://github.com/user-attachments/assets/5b656bf3-3dec-4337-8da7-d0b05b4ac660" />
+![Tiny Music Player desktop UI](documents/player.png)
 
 ## Build
 
-Install system dependecy `libid3tag` and let CMake do its magic
+### Prerequisites
 
-  * Debian: `sudo apt install libid3tag0-dev`
-  * Fedora: `sudo dnf install libid3tag-devel`
+- C++23 compiler
+- CMake
+
+### Dependencies
+
+Automatically managed by CMake.
+
+- [raylib](https://github.com/raysan5/raylib) - Rendering
+- [raygui](https://github.com/raysan5/raygui) - UI components
+- [fmt](https://github.com/fmtlib/fmt) - Formatting
+- [FFmpeg](https://ffmpeg.org/) - Audio decoding
+
+### Build Instructions
+
+Just let CMake do its magic.
+
+## LICENSE
+    Tiny Music Player
+    A bloat-free music player.
+    Copyright (C) 2026  Joshua Lam <me[at]joshlam.dev>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
