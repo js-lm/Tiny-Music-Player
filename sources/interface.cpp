@@ -42,16 +42,17 @@ void MusicPlayer::drawInterface(){
             static_cast<float>(constants::ui::TextIndentation), 
             static_cast<float>(constants::ui::TitleYPosition)
         };
-        DrawText(
+        DrawTextEx(
+            customFont_,
             displayedMusicTitle_.c_str(), 
-            static_cast<int>(titlePosition.x), 
-            static_cast<int>(titlePosition.y), 
+            titlePosition, 
             constants::ui::TextFontSize, 
+            1.0f,
             BLACK
         );
         
         Vector2 mousePosition{GetMousePosition()};
-        int titleWidth{MeasureText(displayedMusicTitle_.c_str(), constants::ui::TextFontSize)};
+        int titleWidth{static_cast<int>(MeasureTextEx(customFont_, displayedMusicTitle_.c_str(), constants::ui::TextFontSize, 1.0f).x)};
         Rectangle titleRectangle{titlePosition.x, titlePosition.y, static_cast<float>(titleWidth), constants::ui::TextFontSize};
         if(CheckCollisionPointRec(mousePosition, titleRectangle)){
             isAnyWidgetHovered_ = true;
@@ -65,15 +66,16 @@ void MusicPlayer::drawInterface(){
         const char *subtitleText{isShowingArtist_ && !displayedArtistName_.empty() 
             ? displayedArtistName_.c_str() 
             : displayedFilePath_.c_str()};
-        DrawText(
+        DrawTextEx(
+            customFont_,
             subtitleText, 
-            static_cast<int>(subtitlePosition.x), 
-            static_cast<int>(subtitlePosition.y), 
+            subtitlePosition, 
             constants::ui::TextFontSize, 
+            1.0f,
             ColorAlpha(BLACK, .5f)
         );
         
-        int subtitleWidth{MeasureText(subtitleText, constants::ui::TextFontSize)};
+        int subtitleWidth{static_cast<int>(MeasureTextEx(customFont_, subtitleText, constants::ui::TextFontSize, 1.0f).x)};
         Rectangle subtitleRectangle{subtitlePosition.x, subtitlePosition.y, static_cast<float>(subtitleWidth), constants::ui::TextFontSize};
         if(CheckCollisionPointRec(mousePosition, subtitleRectangle)){
             isAnyWidgetHovered_ = true;
@@ -84,11 +86,12 @@ void MusicPlayer::drawInterface(){
     
     /* Music Progress Bar */ {
         const int currentTimeXPosition{(screenWidth - constants::ui::ProgressBarWidth) / 2 + constants::ui::CurrentTimeXOffset};
-        DrawText(
+        DrawTextEx(
+            customFont_,
             currentProgressString_.c_str(), 
-            currentTimeXPosition, 
-            constants::ui::ProgressBarYPosition + constants::ui::ProgressBarTimeTextOffset, 
+            Vector2{static_cast<float>(currentTimeXPosition), static_cast<float>(constants::ui::ProgressBarYPosition + constants::ui::ProgressBarTimeTextOffset)}, 
             constants::ui::TextFontSize, 
+            1.0f,
             BLACK
         );
         
@@ -170,11 +173,12 @@ void MusicPlayer::drawInterface(){
         
         
         const int totalTimeXPosition{progressBarXPosition + constants::ui::ProgressBarWidth + constants::ui::TotalTimeXOffset};
-        DrawText(
+        DrawTextEx(
+            customFont_,
             totalLengthString_.c_str(), 
-            totalTimeXPosition, 
-            constants::ui::ProgressBarYPosition + constants::ui::ProgressBarTimeTextOffset, 
+            Vector2{static_cast<float>(totalTimeXPosition), static_cast<float>(constants::ui::ProgressBarYPosition + constants::ui::ProgressBarTimeTextOffset)}, 
             constants::ui::TextFontSize, 
+            1.0f,
             BLACK
         );
     } /* Music Progress Bar */

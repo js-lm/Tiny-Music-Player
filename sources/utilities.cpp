@@ -6,6 +6,8 @@
 
 #include "debug_utilities.hpp"
 
+#include "font_lanapixel.hpp"
+
 #include <sstream>
 #include <iomanip>
 #include <random>
@@ -14,6 +16,7 @@
 #include <random>
 #include <algorithm>
 #include <cstring>
+#include <unordered_set>
 
 #include <raymath.h>
 
@@ -56,7 +59,7 @@ bool MusicPlayer::drawImageButton(constants::icons::Id iconId, Rectangle bounds)
     return isClicked;
 }
 
-void MusicPlayer::initIconsTexture(){
+void MusicPlayer::initializeIconsTexture(){
     Image iconsImage{GenImageColor(
         scaleToDpiInt(constants::icons::NumberOfColumns), 
         scaleToDpiInt(constants::icons::NumberOfRows * 3), 
@@ -103,7 +106,7 @@ void MusicPlayer::initIconsTexture(){
     UnloadImage(iconsImage);
 }
 
-void MusicPlayer::initWindowIcon(){
+void MusicPlayer::initializeWindowIcon(){
     SetWindowIcon(constants::window_icon::image);
 }
 
@@ -154,6 +157,35 @@ std::string MusicPlayer::secondInFloatToString(float second){
     return stringStream.str();
 }
 
+void MusicPlayer::reloadFont(){
+    if(IsFontValid(customFont_)) UnloadFont(customFont_);
+
+    std::unordered_set<int> codepointSet{};
+
+    for(int characterCode{0x0020}; characterCode <= 0x007E; characterCode++) codepointSet.insert(characterCode);
+
+    auto extractCodepoints{[&codepointSet](const std::string &text){
+        int bytesProcessed{0};
+        for(size_t index{0}; index < text.size();){
+            int codepoint{GetCodepointNext(&text[index], &bytesProcessed)};
+            codepointSet.insert(codepoint);
+            index += bytesProcessed;
+        }
+    }};
+
+    extractCodepoints(displayedMusicTitle_);
+    extractCodepoints(displayedArtistName_);
+    extractCodepoints(displayedFilePath_);
+
+    std::vector<int> codepoints{codepointSet.begin(), codepointSet.end()};
+
+    customFont_ = LoadFontFromMemory(".ttf", resources_LanaPixel_ttf, resources_LanaPixel_ttf_length, constants::ui::TextFontSize, codepoints.data(), codepoints.size());
+    SetTextureFilter(customFont_.texture, TEXTURE_FILTER_POINT);
+
+    GuiSetFont(customFont_);
+    GuiSetStyle(DEFAULT, TEXT_SIZE, constants::ui::TextFontSize);
+}
+
 void MusicPlayer::resetMusicState(){
     tryUnloadMusic();
 
@@ -191,7 +223,7 @@ void MusicPlayer::tryUnloadMusic(){
     }
 }
 
-void MusicPlayer::initMusicStream(const char *path){
+void MusicPlayer::initializeMusicStream(const char *path){
     if(!FileExists(path) && !DirectoryExists(path)) return;
     
     unloadDirectory();
@@ -338,7 +370,6 @@ bool MusicPlayer::tryStartMusicStream(const char *filename){
     totalLengthString_ = secondInFloatToString(currentMusicTotalLength_);
     currentProgressString_ = secondInFloatToString(.0f);
     
-    // Extract metadata
     AVDictionaryEntry *titleEntry{av_dict_get(formatContext_->metadata, "title", nullptr, 0)};
     AVDictionaryEntry *artistEntry{av_dict_get(formatContext_->metadata, "artist", nullptr, 0)};
     
@@ -346,6 +377,8 @@ bool MusicPlayer::tryStartMusicStream(const char *filename){
     displayedArtistName_ = artistEntry ? artistEntry->value : "";
     displayedFilePath_ = filename;
     currentFileName_ = GetFileName(filename);
+
+    reloadFont();
 
     return true;
 }
@@ -436,7 +469,7 @@ std::optional<std::string> MusicPlayer::getArgumentPath(int argumentCount, char 
     for(int i{1}; i < argumentCount; i++){
         if(IsPathFile(arguments[i]) && pathFound.empty()) pathFound = arguments[i];
         else if(strcmp(arguments[i], "--help") == 0 || strcmp(arguments[i], "-h") == 0){
-            std::cout << "A tiny music player created by js-lm (me@joshlam.dev)" << std::endl;
+            std::cout << "A tiny music player created by Joshua Lam (me@joshlam.dev)" << std::endl;
         }else if(strcmp(arguments[i], "--version") == 0 || strcmp(arguments[i], "-v") == 0){
             std::cout << "Version " << constants::system::AppVersion << std::endl;
         }

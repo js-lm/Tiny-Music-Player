@@ -25,9 +25,8 @@ MusicPlayer::MusicPlayer(int argumentCount, char *arguments[]){
 
 int MusicPlayer::run(){
     if(shouldClose_) return 0;
-    init();
+    initialize();
     while(!(WindowShouldClose() || shouldClose_)){
-        // We ensure UpdateMusicStream is done in audioThread_
         update();
         draw();
     }
@@ -35,7 +34,7 @@ int MusicPlayer::run(){
     return 0;
 }
 
-void MusicPlayer::init(){
+void MusicPlayer::initialize(){
 	SetConfigFlags(FLAG_WINDOW_UNDECORATED | FLAG_WINDOW_TRANSPARENT | FLAG_WINDOW_ALWAYS_RUN);
 	InitWindow(
         constants::system::WindowWidth, 
@@ -59,12 +58,12 @@ void MusicPlayer::init(){
         constants::system::WindowHeight
     );
     
-    renderSourceRect_ = Rectangle{
+    renderSourceRectangle_ = Rectangle{
         0, 0,
         static_cast<float>(constants::system::WindowWidth),
         -static_cast<float>(constants::system::WindowHeight)
     };
-    renderDestRect_ = Rectangle{
+    renderDestinationRectangle_ = Rectangle{
         0, 0,
         static_cast<float>(scaleToDpiInt(constants::system::WindowWidth)),
         static_cast<float>(scaleToDpiInt(constants::system::WindowHeight))
@@ -73,13 +72,15 @@ void MusicPlayer::init(){
     SetAudioStreamBufferSizeDefault(constants::system::AudioBufferSize);
     InitAudioDevice();
 
-    initIconsTexture();
+    initializeIconsTexture();
+
+    reloadFont();
 
     resetMusicState();
 
-    initWindowIcon();
+    initializeWindowIcon();
 
-    // if(!programArgumentPath_.empty()) initMusicStream(programArgumentPath_.c_str());
+    // if(!programArgumentPath_.empty()) initializeMusicStream(programArgumentPath_.c_str());
     audioThreadRunning_ = true;
     audioThread_ = std::thread([this](){
         while(this->audioThreadRunning_){
@@ -166,7 +167,7 @@ void MusicPlayer::init(){
         }
     });
 
-    if(!programArgumentPath_.empty()) initMusicStream(programArgumentPath_.c_str());
+    if(!programArgumentPath_.empty()) initializeMusicStream(programArgumentPath_.c_str());
 }
 
 void MusicPlayer::update(){
@@ -193,8 +194,8 @@ void MusicPlayer::draw(){
     
     DrawTexturePro(
         renderTexture_.texture,
-        renderSourceRect_,
-        renderDestRect_,
+        renderSourceRectangle_,
+        renderDestinationRectangle_,
         Vector2{0, 0},
         .0f,
         WHITE
@@ -209,6 +210,7 @@ void MusicPlayer::shutdown(){
 
     tryUnloadMusic();
     CloseAudioDevice();
+    UnloadFont(customFont_);
     UnloadTexture(iconsTexture_);
     UnloadRenderTexture(renderTexture_);
     CloseWindow();

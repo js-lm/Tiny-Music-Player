@@ -7,7 +7,7 @@
 #include <vector>
 #include <string>
 
-#include "WindowIcon.h"
+#include "window_icon.hpp"
 
 namespace constants{
     inline const std::vector<std::string> SupportedMusicExtensions{
@@ -28,7 +28,7 @@ namespace constants{
     };
     
     constexpr const char *LockFileName{"/.~tinymusicplayer.locked"};
-    constexpr const char *IpcFileName{"/.~tinymusicplayer.ipc"};
+    constexpr const char *InterProcessCommunicationFileName{"/.~tinymusicplayer.ipc"};
     constexpr std::time_t LockExpirationTime{1};
     constexpr float LockUpdateFrequency{.1f};
 
@@ -43,7 +43,7 @@ namespace constants{
         constexpr int AudioThreadSleepDurationMs{10};
         constexpr int AudioThreadEventPostFrequency{25}; // roughly 25 * 10ms
 
-        constexpr const char *AppVersion{"0.1.1"};
+        constexpr const char *AppVersion{"1.0"};
     } // namespace system
 
     namespace ui{
@@ -56,7 +56,7 @@ namespace constants{
         constexpr int TitleYPosition    {40};
         constexpr int SubtitleYPosition {60};
         constexpr int TextIndentation   {25};
-        constexpr int TextFontSize      {10};
+        constexpr int TextFontSize      {13};
         
         constexpr int ProgressBarYPosition  {90};
         constexpr int ProgressBarWidth      {450};

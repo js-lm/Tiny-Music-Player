@@ -54,23 +54,23 @@ namespace lock{
     } // namespace _
 
     static const std::string LockLocation{_::GetConfigDirectory() + constants::LockFileName};
-    static const std::string IpcLocation{_::GetConfigDirectory() + constants::IpcFileName};
+    static const std::string InterProcessCommunicationLocation{_::GetConfigDirectory() + constants::InterProcessCommunicationFileName};
     
 #if defined(__linux__)
     #include <sys/file.h>
     #include <fcntl.h>
     #include <unistd.h>
-    static int lockFd{-1};
+    static int lockFileDescriptor{-1};
 #endif
 
     inline bool TryAcquireLock(){
 #if defined(__linux__)
-        lockFd = open(LockLocation.c_str(), O_CREAT | O_RDWR, 0666);
-        if(lockFd == -1) return false;
+        lockFileDescriptor = open(LockLocation.c_str(), O_CREAT | O_RDWR, 0666);
+        if(lockFileDescriptor == -1) return false;
         
-        if(flock(lockFd, LOCK_EX | LOCK_NB) == -1){
-            close(lockFd);
-            lockFd = -1;
+        if(flock(lockFileDescriptor, LOCK_EX | LOCK_NB) == -1){
+            close(lockFileDescriptor);
+            lockFileDescriptor = -1;
             return false;
         }
         return true;
@@ -85,26 +85,26 @@ namespace lock{
 
     inline void UnlockProgram(){
 #if defined(__linux__)
-        if(lockFd != -1){
-            flock(lockFd, LOCK_UN);
-            close(lockFd);
-            lockFd = -1;
+        if(lockFileDescriptor != -1){
+            flock(lockFileDescriptor, LOCK_UN);
+            close(lockFileDescriptor);
+            lockFileDescriptor = -1;
             std::remove(LockLocation.c_str());
         }
 #endif
     }
 
     inline void WriteNewFilePath(const std::string &path){
-        std::ofstream ipc(IpcLocation, std::ios::app);
+        std::ofstream ipc(InterProcessCommunicationLocation, std::ios::app);
         if(ipc.is_open()){
             ipc << path << "\n";
         }
     }
 
     inline std::optional<std::string> TryGetNewFilePath(){
-        if(!FileExists(IpcLocation.c_str())) return std::nullopt;
+        if(!FileExists(InterProcessCommunicationLocation.c_str())) return std::nullopt;
 
-        std::ifstream ipcIn(IpcLocation);
+        std::ifstream ipcIn(InterProcessCommunicationLocation);
         if(!ipcIn.is_open()) return std::nullopt;
 
         std::string firstLine;
@@ -118,14 +118,14 @@ namespace lock{
         ipcIn.close();
 
         if(!hasLine || firstLine.empty()){
-            std::remove(IpcLocation.c_str());
+            std::remove(InterProcessCommunicationLocation.c_str());
             return std::nullopt;
         }
 
         if(remainingLines.empty()){
-            std::remove(IpcLocation.c_str());
+            std::remove(InterProcessCommunicationLocation.c_str());
         }else{
-            std::ofstream ipcOut(IpcLocation, std::ios::trunc);
+            std::ofstream ipcOut(InterProcessCommunicationLocation, std::ios::trunc);
             for(const auto &remainingLine : remainingLines){
                 ipcOut << remainingLine << "\n";
             }

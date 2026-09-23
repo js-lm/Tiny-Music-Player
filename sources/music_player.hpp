@@ -55,9 +55,10 @@ private:
 private:
     Texture2D iconsTexture_;
     RenderTexture2D renderTexture_;
+    Font customFont_{};
     float dpiScale_;
-    Rectangle renderSourceRect_;
-    Rectangle renderDestRect_;
+    Rectangle renderSourceRectangle_;
+    Rectangle renderDestinationRectangle_;
 
 private:
     std::string programArgumentPath_;
@@ -103,7 +104,7 @@ private:
 	bool shouldClose() const{ return shouldClose_;}
 
 private:
-    void init();
+    void initialize();
     void update();
     void draw();
     void shutdown();
@@ -114,8 +115,9 @@ private:
 private:
     void updateMusic();
     void resetMusicState();
+    void reloadFont();
 
-    void initMusicStream(const char *path);
+    void initializeMusicStream(const char *path);
     void tryUnloadMusic();
 
     bool tryStartMusicStream(const char *filename);
@@ -145,14 +147,14 @@ private:
     void togglePathAndArtistClicked();
 
 private:
-    void initIconsTexture();
-    void initWindowIcon();
+    void initializeIconsTexture();
+    void initializeWindowIcon();
 
     bool drawImageButton(constants::icons::Id iconId, Rectangle bounds);
 
     std::string secondInFloatToString(float second);
 
-    bool isMediaFile(const std::string& path);
+    bool isMediaFile(const std::string &path);
 
     Vector2 scaleToDpiVector2(Vector2 values){
         return Vector2{
