@@ -12,7 +12,7 @@
 
 #include "constants.hpp"
 
-namespace Lock{
+namespace lock{
 
     namespace _{
 
@@ -41,7 +41,7 @@ namespace Lock{
 #elif defined(_WIN32)
 
 #endif
-            lockPath /= Constants::System::WindowName;
+            lockPath /= constants::system::WindowName;
 
             try{
                 std::filesystem::create_directories(lockPath);
@@ -53,7 +53,7 @@ namespace Lock{
         }
     } // namespace _
 
-    static const std::string LockLocation{_::GetConfigDirectory() + Constants::LockFileName};
+    static const std::string LockLocation{_::GetConfigDirectory() + constants::LockFileName};
 
     inline void LockProgram(){
         SaveFileText(LockLocation.c_str(), const_cast<char*>(std::to_string(_::GetCurrentTimestamp()).c_str()));
@@ -84,7 +84,7 @@ namespace Lock{
                 lastUpdateTime = std::stoll(content);
             }catch(...){}
 
-            if(_::GetCurrentTimestamp() - static_cast<std::time_t>(lastUpdateTime) >= Constants::LockExpirationTime){
+            if(_::GetCurrentTimestamp() - static_cast<std::time_t>(lastUpdateTime) >= constants::LockExpirationTime){
                 UnlockProgram();
                 isLocked = false;
             }
@@ -129,4 +129,4 @@ namespace Lock{
         return std::nullopt;
     }
 
-} // namespace Lock
+} // namespace lock

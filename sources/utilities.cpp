@@ -17,7 +17,7 @@
 
 #include <raymath.h>
 
-bool MusicPlayer::drawImageButton(Constants::Icons::Id iconId, Rectangle bounds){
+bool MusicPlayer::drawImageButton(constants::icons::Id iconId, Rectangle bounds){
     Vector2 mousePosition{GetMousePosition()};
     bool isHovered{CheckCollisionPointRec(mousePosition, bounds)};
     bool isClicked{false};
@@ -31,24 +31,24 @@ bool MusicPlayer::drawImageButton(Constants::Icons::Id iconId, Rectangle bounds)
     
     int offsetYPosition{0};
     if(IsMouseButtonDown(MOUSE_BUTTON_LEFT) && isHovered){
-        offsetYPosition = Constants::Icons::IconSize.y * 2; // active
+        offsetYPosition = constants::icons::IconSize.y * 2; // active
     }else if(isHovered){
-        offsetYPosition = Constants::Icons::IconSize.y * 1; // hover
+        offsetYPosition = constants::icons::IconSize.y * 1; // hover
     }
     
     int pixelSize{scaleToDpiInt(1)};
     Rectangle sourceRectangle{
-        Constants::Icons::IconSize.x * static_cast<float>(static_cast<int>(iconId)) * pixelSize,
+        constants::icons::IconSize.x * static_cast<float>(static_cast<int>(iconId)) * pixelSize,
         static_cast<float>(offsetYPosition) * pixelSize,
-        Constants::Icons::IconSize.x * pixelSize,
-        Constants::Icons::IconSize.y * pixelSize
+        constants::icons::IconSize.x * pixelSize,
+        constants::icons::IconSize.y * pixelSize
     };
     
     Rectangle destinationRectangle{
-        bounds.x + Constants::Icons::IconOffset.x,
-        bounds.y + Constants::Icons::IconOffset.y,
-        Constants::Icons::IconSize.x,
-        Constants::Icons::IconSize.y
+        bounds.x + constants::icons::IconOffset.x,
+        bounds.y + constants::icons::IconOffset.y,
+        constants::icons::IconSize.x,
+        constants::icons::IconSize.y
     };
     
     DrawTexturePro(iconsTexture_, sourceRectangle, destinationRectangle, Vector2{0, 0}, .0f, WHITE);
@@ -58,8 +58,8 @@ bool MusicPlayer::drawImageButton(Constants::Icons::Id iconId, Rectangle bounds)
 
 void MusicPlayer::initIconsTexture(){
     Image iconsImage{GenImageColor(
-        scaleToDpiInt(Constants::Icons::NumberOfColumns), 
-        scaleToDpiInt(Constants::Icons::NumberOfRows * 3), 
+        scaleToDpiInt(constants::icons::NumberOfColumns), 
+        scaleToDpiInt(constants::icons::NumberOfRows * 3), 
         BLANK
     )};
 
@@ -68,31 +68,31 @@ void MusicPlayer::initIconsTexture(){
     // void ImageDrawRectangle(Image *dst, int posX, int posY, int width, int height, Color color);       // Draw rectangle within an image
 
 
-    for(size_t row{0}; row < Constants::Icons::NumberOfRows; row++){
-        const std::bitset<Constants::Icons::NumberOfColumns> &bitsetRow{Constants::Icons::IconsBitset[row]};
-        for(size_t column{0}; column < Constants::Icons::NumberOfColumns; column++){
+    for(size_t row{0}; row < constants::icons::NumberOfRows; row++){
+        const std::bitset<constants::icons::NumberOfColumns> &bitsetRow{constants::icons::IconsBitset[row]};
+        for(size_t column{0}; column < constants::icons::NumberOfColumns; column++){
             if(bitsetRow.test(column)){
-                // ImageDrawPixel(&iconsImage, column, row, Constants::Icons::NormalColor);
+                // ImageDrawPixel(&iconsImage, column, row, constants::icons::NormalColor);
                 ImageDrawRectangle(
                     &iconsImage, 
                     column * pixelSize, 
                     row * pixelSize, 
                     pixelSize, pixelSize, 
-                    Constants::Icons::NormalColor
+                    constants::icons::NormalColor
                 );
                 ImageDrawRectangle(
                     &iconsImage, 
                     column * pixelSize, 
-                    row * pixelSize + Constants::Icons::IconSize.y * pixelSize, 
+                    row * pixelSize + constants::icons::IconSize.y * pixelSize, 
                     pixelSize, pixelSize, 
-                    Constants::Icons::HoverColor
+                    constants::icons::HoverColor
                 );
                 ImageDrawRectangle(
                     &iconsImage, 
                     column * pixelSize, 
-                    row * pixelSize + Constants::Icons::IconSize.y * 2 * pixelSize, 
+                    row * pixelSize + constants::icons::IconSize.y * 2 * pixelSize, 
                     pixelSize, pixelSize, 
-                    Constants::Icons::ActiveColor
+                    constants::icons::ActiveColor
                 );
             }
         }
@@ -104,7 +104,7 @@ void MusicPlayer::initIconsTexture(){
 }
 
 void MusicPlayer::initWindowIcon(){
-    SetWindowIcon(Constants::WindowIcon::image);
+    SetWindowIcon(constants::window_icon::image);
 }
 
 void MusicPlayer::updateMusic(){
@@ -234,7 +234,7 @@ bool MusicPlayer::isMediaFile(const std::string &path){
         std::string extension{path.substr(dotPosition)};
         std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
-        for(const auto &audioExtension : Constants::SupportedMusicExtensions){
+        for(const auto &audioExtension : constants::SupportedMusicExtensions){
             if(extension == audioExtension) return true;
         }
     }
@@ -327,7 +327,7 @@ bool MusicPlayer::tryStartMusicStream(const char *filename){
         return false;
     }
 
-    SetAudioStreamBufferSizeDefault(Constants::System::AudioBufferSize);
+    SetAudioStreamBufferSizeDefault(constants::system::AudioBufferSize);
     audioStream_ = LoadAudioStream(44100, 32, 2);
     isAudioStreamInitialized_ = true;
     PlayAudioStream(audioStream_);
@@ -438,7 +438,7 @@ std::optional<std::string> MusicPlayer::getArgumentPath(int argumentCount, char 
         else if(strcmp(arguments[i], "--help") == 0 || strcmp(arguments[i], "-h") == 0){
             std::cout << "A tiny music player created by js-lm (me@joshlam.dev)" << std::endl;
         }else if(strcmp(arguments[i], "--version") == 0 || strcmp(arguments[i], "-v") == 0){
-            std::cout << "Version " << Constants::System::AppVersion << std::endl;
+            std::cout << "Version " << constants::system::AppVersion << std::endl;
         }
     }
     

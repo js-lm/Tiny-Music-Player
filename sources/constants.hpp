@@ -9,7 +9,7 @@
 
 #include "WindowIcon.h"
 
-namespace Constants{
+namespace constants{
     inline const std::vector<std::string> SupportedMusicExtensions{
         ".3g2", ".3gp", ".aac", ".ac3", ".adx", ".aif", ".aifc", ".aiff", ".amr", ".aptx",
         ".asf", ".au", ".avi", ".caf", ".dts", ".eac3", ".flac", ".flv", ".g722", ".gsm",
@@ -31,7 +31,7 @@ namespace Constants{
     constexpr std::time_t LockExpirationTime{1};
     constexpr float LockUpdateFrequency{.1f};
 
-    namespace System{
+    namespace system{
         constexpr int WindowWidth{600};
         constexpr int WindowHeight{160};
         constexpr const char *WindowName{"Tiny Music Player"};
@@ -43,9 +43,9 @@ namespace Constants{
         constexpr int AudioThreadEventPostFrequency{100}; // roughly 100 * 10ms
 
         constexpr const char *AppVersion{"0.1.1"};
-    } // namespace System
+    } // namespace system
 
-    namespace UI{
+    namespace ui{
         constexpr float BackgroundOpacity{.9f};
         
         constexpr int WindowControlYPosition{10};
@@ -84,9 +84,9 @@ namespace Constants{
         constexpr const char *TooltipDirectoryLoop{"Directory Loop"};
         constexpr const char *TooltipDirectoryLoopInfinite{"Directory Loop Infinite"};
 
-    } // namespace UI
+    } // namespace ui
 
-    namespace WindowIcon{
+    namespace window_icon{
 
         constexpr Image image{
             .data = WINDOWICON_DATA,
@@ -95,9 +95,9 @@ namespace Constants{
             .format = WINDOWICON_FORMAT
         };
         
-    } // namespace WindowIcon
+    } // namespace window_icon
 
-    namespace Icons{
+    namespace icons{
         constexpr float ButtonSize  {30.0f};
         constexpr Vector2 IconSize  {26.0f, 24.0f};
         constexpr Vector2 IconOffset{
@@ -153,6 +153,6 @@ namespace Constants{
             std::bitset<NumberOfColumns>("000000000000000000100100000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000001000000000000000001000000000000000000000000010000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000"),
             std::bitset<NumberOfColumns>("000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000001000000000000000000100000000000000000000000001000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000")
         };
-    } // namespace Icons
+    } // namespace icons
 
-} // namespace Constants
+} // namespace constants

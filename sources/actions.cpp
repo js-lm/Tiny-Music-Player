@@ -61,7 +61,7 @@ void MusicPlayer::playPauseMusicClicked(){
         isManuallyPaused_ = true;
     }else{
         if(musicProgress_ >= 0.999f && formatContext_ != nullptr){
-            if(loopMode_ == Constants::LoopMode::Directory_Loop){
+            if(loopMode_ == constants::LoopMode::Directory_Loop){
                 findNextValidMusic(true, true);
             }else{
                 av_seek_frame(formatContext_, -1, 0, AVSEEK_FLAG_BACKWARD);
@@ -85,12 +85,12 @@ void MusicPlayer::toggleLoopClicked(bool isForward){
     int currentLoopModeIndex{static_cast<int>(loopMode_)};
 
     if(isForward){
-        loopMode_ = static_cast<Constants::LoopMode>((currentLoopModeIndex + 1) % Constants::NumberOfLoopMode);
+        loopMode_ = static_cast<constants::LoopMode>((currentLoopModeIndex + 1) % constants::NumberOfLoopMode);
     }else{
-        loopMode_ = static_cast<Constants::LoopMode>((currentLoopModeIndex - 1 + Constants::NumberOfLoopMode) % Constants::NumberOfLoopMode);
+        loopMode_ = static_cast<constants::LoopMode>((currentLoopModeIndex - 1 + constants::NumberOfLoopMode) % constants::NumberOfLoopMode);
     }
 
-    // music_.looping = loopMode_ == Constants::LoopMode::Single_Music_Loop;
+    // music_.looping = loopMode_ == constants::LoopMode::Single_Music_Loop;
 }
 
 void MusicPlayer::progressBarClicked(){

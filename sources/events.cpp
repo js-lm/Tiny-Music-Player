@@ -49,20 +49,20 @@ void MusicPlayer::handleFileDrop(){
 
 void MusicPlayer::handleMusicEnd(){
     switch(loopMode_){
-    case Constants::LoopMode::No_Loop:{
+    case constants::LoopMode::No_Loop:{
         // PauseAudioStream(audioStream_);
         isManuallyPaused_ = true;
     } return;
-    case Constants::LoopMode::Single_Music_Loop:{
+    case constants::LoopMode::Single_Music_Loop:{
         av_seek_frame(formatContext_, -1, 0, AVSEEK_FLAG_BACKWARD);
         avcodec_flush_buffers(codecContext_);
         audioBuffer_.clear();
         PlayAudioStream(audioStream_);
     } return;
-    case Constants::LoopMode::Directory_Loop_Infinite:{
+    case constants::LoopMode::Directory_Loop_Infinite:{
         findNextValidMusic(true, true);
     } return;
-    case Constants::LoopMode::Directory_Loop:{
+    case constants::LoopMode::Directory_Loop:{
         if(!findNextValidMusic(true, false)){
             isManuallyPaused_ = true;
         }
@@ -77,15 +77,15 @@ void MusicPlayer::handleKeyboard(){
 
 void MusicPlayer::handleNewInstanceOpened(){
     if(timeSinceLastLockUpdate_ <= 0){
-        timeSinceLastLockUpdate_ = Constants::LockUpdateFrequency;
+        timeSinceLastLockUpdate_ = constants::LockUpdateFrequency;
 
-        if(auto newMusic{Lock::TryGetNewFilePath()}){
+        if(auto newMusic{lock::TryGetNewFilePath()}){
             if(isMediaFile(newMusic.value().c_str())){
                 initMusicStream(newMusic.value().c_str());
             }
         }
 
-        Lock::UpdateLockTimeStamp();
+        lock::UpdateLockTimeStamp();
     }
     timeSinceLastLockUpdate_ -= GetFrameTime();
 }

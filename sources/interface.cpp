@@ -9,58 +9,58 @@ void MusicPlayer::drawInterface(){
     isAnyWidgetHovered_ = false;
     std::string activeTooltip;
     
-    const int screenWidth{Constants::System::WindowWidth};
-    const int screenHeight{Constants::System::WindowHeight};
+    const int screenWidth{constants::system::WindowWidth};
+    const int screenHeight{constants::system::WindowHeight};
     
     /* white background */ {
-        DrawRectangle(0, 0, screenWidth, screenHeight, ColorAlpha(WHITE, Constants::UI::BackgroundOpacity));
+        DrawRectangle(0, 0, screenWidth, screenHeight, ColorAlpha(WHITE, constants::ui::BackgroundOpacity));
     } /* white background */
     
     /* Window controls */ {
-        const int closeXPosition{screenWidth - Constants::UI::ButtonSize - Constants::UI::WindowControlSpacing};
-        const int minimizeXPosition{closeXPosition - Constants::UI::ButtonSize - Constants::UI::WindowControlSpacing};
+        const int closeXPosition{screenWidth - constants::ui::ButtonSize - constants::ui::WindowControlSpacing};
+        const int minimizeXPosition{closeXPosition - constants::ui::ButtonSize - constants::ui::WindowControlSpacing};
         
         Rectangle minimizeRectangle{
             static_cast<float>(minimizeXPosition), 
-            static_cast<float>(Constants::UI::WindowControlYPosition), 
-            static_cast<float>(Constants::UI::ButtonSize), 
-            static_cast<float>(Constants::UI::ButtonSize)
+            static_cast<float>(constants::ui::WindowControlYPosition), 
+            static_cast<float>(constants::ui::ButtonSize), 
+            static_cast<float>(constants::ui::ButtonSize)
         };
         Rectangle closeRectangle{
             static_cast<float>(closeXPosition), 
-            static_cast<float>(Constants::UI::WindowControlYPosition), 
-            static_cast<float>(Constants::UI::ButtonSize), 
-            static_cast<float>(Constants::UI::ButtonSize)
+            static_cast<float>(constants::ui::WindowControlYPosition), 
+            static_cast<float>(constants::ui::ButtonSize), 
+            static_cast<float>(constants::ui::ButtonSize)
         };
         
-        if(drawImageButton(Constants::Icons::Id::Minimize, minimizeRectangle)) minimizeClicked();
-        if(drawImageButton(Constants::Icons::Id::Close, closeRectangle)) closeClicked();
+        if(drawImageButton(constants::icons::Id::Minimize, minimizeRectangle)) minimizeClicked();
+        if(drawImageButton(constants::icons::Id::Close, closeRectangle)) closeClicked();
     } /* Window controls */
     
     /* Song Information */ {
         Vector2 titlePosition{
-            static_cast<float>(Constants::UI::TextIndentation), 
-            static_cast<float>(Constants::UI::TitleYPosition)
+            static_cast<float>(constants::ui::TextIndentation), 
+            static_cast<float>(constants::ui::TitleYPosition)
         };
         DrawText(
             displayedMusicTitle_.c_str(), 
             static_cast<int>(titlePosition.x), 
             static_cast<int>(titlePosition.y), 
-            Constants::UI::TextFontSize, 
+            constants::ui::TextFontSize, 
             BLACK
         );
         
         Vector2 mousePosition{GetMousePosition()};
-        int titleWidth{MeasureText(displayedMusicTitle_.c_str(), Constants::UI::TextFontSize)};
-        Rectangle titleRectangle{titlePosition.x, titlePosition.y, static_cast<float>(titleWidth), Constants::UI::TextFontSize};
+        int titleWidth{MeasureText(displayedMusicTitle_.c_str(), constants::ui::TextFontSize)};
+        Rectangle titleRectangle{titlePosition.x, titlePosition.y, static_cast<float>(titleWidth), constants::ui::TextFontSize};
         if(CheckCollisionPointRec(mousePosition, titleRectangle)){
             isAnyWidgetHovered_ = true;
             if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) copyMusicTitleClicked();
         }
         
         Vector2 subtitlePosition{
-            static_cast<float>(Constants::UI::TextIndentation), 
-            static_cast<float>(Constants::UI::SubtitleYPosition)
+            static_cast<float>(constants::ui::TextIndentation), 
+            static_cast<float>(constants::ui::SubtitleYPosition)
         };
         const char *subtitleText{isShowingArtist_ && !displayedArtistName_.empty() 
             ? displayedArtistName_.c_str() 
@@ -69,12 +69,12 @@ void MusicPlayer::drawInterface(){
             subtitleText, 
             static_cast<int>(subtitlePosition.x), 
             static_cast<int>(subtitlePosition.y), 
-            Constants::UI::TextFontSize, 
+            constants::ui::TextFontSize, 
             ColorAlpha(BLACK, .5f)
         );
         
-        int subtitleWidth{MeasureText(subtitleText, Constants::UI::TextFontSize)};
-        Rectangle subtitleRectangle{subtitlePosition.x, subtitlePosition.y, static_cast<float>(subtitleWidth), Constants::UI::TextFontSize};
+        int subtitleWidth{MeasureText(subtitleText, constants::ui::TextFontSize)};
+        Rectangle subtitleRectangle{subtitlePosition.x, subtitlePosition.y, static_cast<float>(subtitleWidth), constants::ui::TextFontSize};
         if(CheckCollisionPointRec(mousePosition, subtitleRectangle)){
             isAnyWidgetHovered_ = true;
             if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) togglePathAndArtistClicked();
@@ -83,21 +83,21 @@ void MusicPlayer::drawInterface(){
     } /* Song Information */
     
     /* Music Progress Bar */ {
-        const int currentTimeXPosition{(screenWidth - Constants::UI::ProgressBarWidth) / 2 + Constants::UI::CurrentTimeXOffset};
+        const int currentTimeXPosition{(screenWidth - constants::ui::ProgressBarWidth) / 2 + constants::ui::CurrentTimeXOffset};
         DrawText(
             currentProgressString_.c_str(), 
             currentTimeXPosition, 
-            Constants::UI::ProgressBarYPosition + Constants::UI::ProgressBarTimeTextOffset, 
-            Constants::UI::TextFontSize, 
+            constants::ui::ProgressBarYPosition + constants::ui::ProgressBarTimeTextOffset, 
+            constants::ui::TextFontSize, 
             BLACK
         );
         
-        const int progressBarXPosition{(screenWidth - Constants::UI::ProgressBarWidth) / 2};
+        const int progressBarXPosition{(screenWidth - constants::ui::ProgressBarWidth) / 2};
         Rectangle progressBarRectangle{
             static_cast<float>(progressBarXPosition), 
-            static_cast<float>(Constants::UI::ProgressBarYPosition), 
-            static_cast<float>(Constants::UI::ProgressBarWidth), 
-            static_cast<float>(Constants::UI::ProgressBarHeight)
+            static_cast<float>(constants::ui::ProgressBarYPosition), 
+            static_cast<float>(constants::ui::ProgressBarWidth), 
+            static_cast<float>(constants::ui::ProgressBarHeight)
         };
         
         // if(!IsMusicValid(music_)) GuiDisable();
@@ -128,9 +128,9 @@ void MusicPlayer::drawInterface(){
             if(hoveredProgress > 1.0f) hoveredProgress = 1.0f;
             
             Rectangle hoverIndicatorRectangle{
-                progressBarRectangle.x + hoveredProgress * progressBarRectangle.width - Constants::UI::ProgressBarHoverIndicatorXOffset,
+                progressBarRectangle.x + hoveredProgress * progressBarRectangle.width - constants::ui::ProgressBarHoverIndicatorXOffset,
                 progressBarRectangle.y,
-                Constants::UI::ProgressBarHoverIndicatorWidth,
+                constants::ui::ProgressBarHoverIndicatorWidth,
                 progressBarRectangle.height
             };
             DrawRectangleRec(hoverIndicatorRectangle, WHITE);
@@ -169,82 +169,82 @@ void MusicPlayer::drawInterface(){
         if(formatContext_ == nullptr) GuiEnable();
         
         
-        const int totalTimeXPosition{progressBarXPosition + Constants::UI::ProgressBarWidth + Constants::UI::TotalTimeXOffset};
+        const int totalTimeXPosition{progressBarXPosition + constants::ui::ProgressBarWidth + constants::ui::TotalTimeXOffset};
         DrawText(
             totalLengthString_.c_str(), 
             totalTimeXPosition, 
-            Constants::UI::ProgressBarYPosition + Constants::UI::ProgressBarTimeTextOffset, 
-            Constants::UI::TextFontSize, 
+            constants::ui::ProgressBarYPosition + constants::ui::ProgressBarTimeTextOffset, 
+            constants::ui::TextFontSize, 
             BLACK
         );
     } /* Music Progress Bar */
     
     /* Music Controls */ {
         const int totalControlWidth{
-            Constants::UI::ButtonSize * Constants::UI::TotalMusicControlButtons + 
-            Constants::UI::MusicControlInnerSpacing * 2 + 
-            Constants::UI::MusicControlOuterSpacing * 2
+            constants::ui::ButtonSize * constants::ui::TotalMusicControlButtons + 
+            constants::ui::MusicControlInnerSpacing * 2 + 
+            constants::ui::MusicControlOuterSpacing * 2
         };
         const int controlsStartXPosition{(screenWidth - totalControlWidth) / 2};
         
         Rectangle shuffleRectangle{
             static_cast<float>(controlsStartXPosition), 
-            static_cast<float>(Constants::UI::MusicControlsYPosition), 
-            static_cast<float>(Constants::UI::ButtonSize), 
-            static_cast<float>(Constants::UI::ButtonSize)
+            static_cast<float>(constants::ui::MusicControlsYPosition), 
+            static_cast<float>(constants::ui::ButtonSize), 
+            static_cast<float>(constants::ui::ButtonSize)
         };
-        if(drawImageButton(isShuffling_ ? Constants::Icons::Id::Shuffle_On : Constants::Icons::Id::Shuffle_Off, shuffleRectangle)){
+        if(drawImageButton(isShuffling_ ? constants::icons::Id::Shuffle_On : constants::icons::Id::Shuffle_Off, shuffleRectangle)){
             toggleShuffleClicked();
         }
         
         Rectangle previousRectangle{
-            static_cast<float>(controlsStartXPosition + Constants::UI::ButtonSize + Constants::UI::MusicControlOuterSpacing), 
-            static_cast<float>(Constants::UI::MusicControlsYPosition), 
-            static_cast<float>(Constants::UI::ButtonSize), 
-            static_cast<float>(Constants::UI::ButtonSize)
+            static_cast<float>(controlsStartXPosition + constants::ui::ButtonSize + constants::ui::MusicControlOuterSpacing), 
+            static_cast<float>(constants::ui::MusicControlsYPosition), 
+            static_cast<float>(constants::ui::ButtonSize), 
+            static_cast<float>(constants::ui::ButtonSize)
         };
-        if(drawImageButton(Constants::Icons::Id::Previous_Music, previousRectangle)){
+        if(drawImageButton(constants::icons::Id::Previous_Music, previousRectangle)){
             previousSongClicked();
         }
         
         Rectangle playPauseRectangle{
-            static_cast<float>(controlsStartXPosition + Constants::UI::ButtonSize * 2 + Constants::UI::MusicControlOuterSpacing + Constants::UI::MusicControlInnerSpacing), 
-            static_cast<float>(Constants::UI::MusicControlsYPosition), 
-            static_cast<float>(Constants::UI::ButtonSize), 
-            static_cast<float>(Constants::UI::ButtonSize)
+            static_cast<float>(controlsStartXPosition + constants::ui::ButtonSize * 2 + constants::ui::MusicControlOuterSpacing + constants::ui::MusicControlInnerSpacing), 
+            static_cast<float>(constants::ui::MusicControlsYPosition), 
+            static_cast<float>(constants::ui::ButtonSize), 
+            static_cast<float>(constants::ui::ButtonSize)
         };
         
-        Constants::Icons::Id playPauseIcon{
+        constants::icons::Id playPauseIcon{
             (formatContext_ != nullptr && IsAudioStreamPlaying(audioStream_)) 
-                ? Constants::Icons::Id::Pause : Constants::Icons::Id::Play
+                ? constants::icons::Id::Pause : constants::icons::Id::Play
         };
         if(drawImageButton(playPauseIcon, playPauseRectangle)){
             playPauseMusicClicked();
         }
         
         Rectangle nextRectangle{
-            static_cast<float>(controlsStartXPosition + Constants::UI::ButtonSize * 3 + Constants::UI::MusicControlOuterSpacing + Constants::UI::MusicControlInnerSpacing * 2), 
-            static_cast<float>(Constants::UI::MusicControlsYPosition), 
-            static_cast<float>(Constants::UI::ButtonSize), 
-            static_cast<float>(Constants::UI::ButtonSize)
+            static_cast<float>(controlsStartXPosition + constants::ui::ButtonSize * 3 + constants::ui::MusicControlOuterSpacing + constants::ui::MusicControlInnerSpacing * 2), 
+            static_cast<float>(constants::ui::MusicControlsYPosition), 
+            static_cast<float>(constants::ui::ButtonSize), 
+            static_cast<float>(constants::ui::ButtonSize)
         };
-        if(drawImageButton(Constants::Icons::Id::Next_Music, nextRectangle)){
+        if(drawImageButton(constants::icons::Id::Next_Music, nextRectangle)){
             nextSongClicked();
         }
         
-        Constants::Icons::Id loopIcon;
+        constants::icons::Id loopIcon;
         switch(loopMode_){
-            case Constants::LoopMode::No_Loop:                 loopIcon = Constants::Icons::Id::No_Loop; break;
-            case Constants::LoopMode::Single_Music_Loop:       loopIcon = Constants::Icons::Id::Single_Music_Loop; break;
-            case Constants::LoopMode::Directory_Loop:          loopIcon = Constants::Icons::Id::Directory_Loop; break;
-            case Constants::LoopMode::Directory_Loop_Infinite: loopIcon = Constants::Icons::Id::Directory_Loop_Infinite; break;
+            case constants::LoopMode::No_Loop:                 loopIcon = constants::icons::Id::No_Loop; break;
+            case constants::LoopMode::Single_Music_Loop:       loopIcon = constants::icons::Id::Single_Music_Loop; break;
+            case constants::LoopMode::Directory_Loop:          loopIcon = constants::icons::Id::Directory_Loop; break;
+            case constants::LoopMode::Directory_Loop_Infinite: loopIcon = constants::icons::Id::Directory_Loop_Infinite; break;
         }
         
         Rectangle loopRectangle{
-            static_cast<float>(controlsStartXPosition + Constants::UI::ButtonSize * 4 + Constants::UI::MusicControlOuterSpacing * 2 + Constants::UI::MusicControlInnerSpacing * 2), 
-            static_cast<float>(Constants::UI::MusicControlsYPosition), 
-            static_cast<float>(Constants::UI::ButtonSize), 
-            static_cast<float>(Constants::UI::ButtonSize)
+            static_cast<float>(controlsStartXPosition + constants::ui::ButtonSize * 4 + constants::ui::MusicControlOuterSpacing * 2 + constants::ui::MusicControlInnerSpacing * 2), 
+            static_cast<float>(constants::ui::MusicControlsYPosition), 
+            static_cast<float>(constants::ui::ButtonSize), 
+            static_cast<float>(constants::ui::ButtonSize)
         };
         if(drawImageButton(loopIcon, loopRectangle)) toggleLoopClicked();
         
@@ -255,10 +255,10 @@ void MusicPlayer::drawInterface(){
                 toggleLoopClicked(false);
             }
             switch(loopMode_){
-            case Constants::LoopMode::No_Loop:                  activeTooltip = Constants::UI::TooltipNoLoop; break;
-            case Constants::LoopMode::Single_Music_Loop:        activeTooltip = Constants::UI::TooltipSingleMusicLoop; break;
-            case Constants::LoopMode::Directory_Loop:           activeTooltip = Constants::UI::TooltipDirectoryLoop; break;
-            case Constants::LoopMode::Directory_Loop_Infinite:  activeTooltip = Constants::UI::TooltipDirectoryLoopInfinite; break;
+            case constants::LoopMode::No_Loop:                  activeTooltip = constants::ui::TooltipNoLoop; break;
+            case constants::LoopMode::Single_Music_Loop:        activeTooltip = constants::ui::TooltipSingleMusicLoop; break;
+            case constants::LoopMode::Directory_Loop:           activeTooltip = constants::ui::TooltipDirectoryLoop; break;
+            case constants::LoopMode::Directory_Loop_Infinite:  activeTooltip = constants::ui::TooltipDirectoryLoopInfinite; break;
             }
         }
     } /* Music Controls */
@@ -266,19 +266,19 @@ void MusicPlayer::drawInterface(){
     if(!activeTooltip.empty()){
         Vector2 mousePosition{GetMousePosition()};
         Vector2 tooltipTextSize{MeasureTextEx(GuiGetFont(), activeTooltip.c_str(), GuiGetStyle(DEFAULT, TEXT_SIZE), GuiGetStyle(DEFAULT, TEXT_SPACING))};
-        float tooltipHeight{GuiGetStyle(DEFAULT, TEXT_SIZE) + Constants::UI::TooltipHeightPadding};
-        float tooltipWidth{tooltipTextSize.x + Constants::UI::TooltipWidthPadding};
+        float tooltipHeight{GuiGetStyle(DEFAULT, TEXT_SIZE) + constants::ui::TooltipHeightPadding};
+        float tooltipWidth{tooltipTextSize.x + constants::ui::TooltipWidthPadding};
         
         Rectangle tooltipRectangle{
             mousePosition.x - tooltipWidth / 2.0f,
-            mousePosition.y - tooltipHeight - Constants::UI::TooltipYOffset,
+            mousePosition.y - tooltipHeight - constants::ui::TooltipYOffset,
             tooltipWidth,
             tooltipHeight
         };
         
         if(tooltipRectangle.x < 0) tooltipRectangle.x = 0;
         if(tooltipRectangle.x + tooltipWidth > GetScreenWidth()) tooltipRectangle.x = GetScreenWidth() - tooltipWidth;
-        if(tooltipRectangle.y < 0) tooltipRectangle.y = mousePosition.y + Constants::UI::TooltipFallbackYOffset;
+        if(tooltipRectangle.y < 0) tooltipRectangle.y = mousePosition.y + constants::ui::TooltipFallbackYOffset;
         
         GuiPanel(tooltipRectangle, nullptr);
         int previousTextAlignment{GuiGetStyle(LABEL, TEXT_ALIGNMENT)};

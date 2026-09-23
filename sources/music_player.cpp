@@ -14,12 +14,12 @@ MusicPlayer::MusicPlayer(int argumentCount, char *arguments[]){
 
     std::optional<std::string> path{getArgumentPath(argumentCount, arguments)};
 
-    if(Lock::IsProgramLocked()){
-        if(path) Lock::WriteNewFilePath(path.value());
+    if(lock::IsProgramLocked()){
+        if(path) lock::WriteNewFilePath(path.value());
         shouldClose_ = true;
     }else{
         if(path) programArgumentPath_ = path.value();
-        Lock::LockProgram();
+        lock::LockProgram();
     }
 }
 
@@ -38,39 +38,39 @@ int MusicPlayer::run(){
 void MusicPlayer::init(){
 	SetConfigFlags(FLAG_WINDOW_UNDECORATED | FLAG_WINDOW_TRANSPARENT | FLAG_WINDOW_ALWAYS_RUN);
 	InitWindow(
-        Constants::System::WindowWidth, 
-        Constants::System::WindowHeight, 
-        Constants::System::WindowName
+        constants::system::WindowWidth, 
+        constants::system::WindowHeight, 
+        constants::system::WindowName
     );
-    SetWindowOpacity(Constants::System::WindowOpacity);
-	SetTargetFPS(Constants::System::WindowFPS);
+    SetWindowOpacity(constants::system::WindowOpacity);
+	SetTargetFPS(constants::system::WindowFPS);
     
     dpiScale_ = GetWindowScaleDPI().x;
     
     SetWindowSize(
-        scaleToDpiInt(Constants::System::WindowWidth),
-        scaleToDpiInt(Constants::System::WindowHeight)
+        scaleToDpiInt(constants::system::WindowWidth),
+        scaleToDpiInt(constants::system::WindowHeight)
     );
 
     SetMouseScale(1.0f / dpiScale_, 1.0f / dpiScale_);
 
     renderTexture_ = LoadRenderTexture(
-        Constants::System::WindowWidth,
-        Constants::System::WindowHeight
+        constants::system::WindowWidth,
+        constants::system::WindowHeight
     );
     
     renderSourceRect_ = Rectangle{
         0, 0,
-        static_cast<float>(Constants::System::WindowWidth),
-        -static_cast<float>(Constants::System::WindowHeight)
+        static_cast<float>(constants::system::WindowWidth),
+        -static_cast<float>(constants::system::WindowHeight)
     };
     renderDestRect_ = Rectangle{
         0, 0,
-        static_cast<float>(scaleToDpiInt(Constants::System::WindowWidth)),
-        static_cast<float>(scaleToDpiInt(Constants::System::WindowHeight))
+        static_cast<float>(scaleToDpiInt(constants::system::WindowWidth)),
+        static_cast<float>(scaleToDpiInt(constants::system::WindowHeight))
     };
 
-    SetAudioStreamBufferSizeDefault(Constants::System::AudioBufferSize);
+    SetAudioStreamBufferSizeDefault(constants::system::AudioBufferSize);
     InitAudioDevice();
 
     initIconsTexture();
@@ -90,7 +90,7 @@ void MusicPlayer::init(){
                 // }
                 if(this->isAudioStreamInitialized_ && IsAudioStreamPlaying(this->audioStream_)){
                     if(IsAudioStreamProcessed(this->audioStream_)){
-                        int framesNeeded{Constants::System::AudioBufferSize};
+                        int framesNeeded{constants::system::AudioBufferSize};
                         int samplesNeeded{framesNeeded * 2};
                         
                         while(this->audioBuffer_.size() < samplesNeeded){
@@ -158,11 +158,11 @@ void MusicPlayer::init(){
                 }
             }
             static int counter{0};
-            if(counter++ >= Constants::System::AudioThreadEventPostFrequency){
+            if(counter++ >= constants::system::AudioThreadEventPostFrequency){
                 glfwPostEmptyEvent();
                 counter = 0;
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(Constants::System::AudioThreadSleepDurationMs));
+            std::this_thread::sleep_for(std::chrono::milliseconds(constants::system::AudioThreadSleepDurationMs));
         }
     });
 
@@ -212,5 +212,5 @@ void MusicPlayer::shutdown(){
     UnloadTexture(iconsTexture_);
     UnloadRenderTexture(renderTexture_);
     CloseWindow();
-    Lock::UnlockProgram();
+    lock::UnlockProgram();
 }

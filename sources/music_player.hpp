@@ -63,7 +63,7 @@ private:
     std::string programArgumentPath_;
 
 private:
-    Constants::LoopMode loopMode_{Constants::LoopMode::No_Loop};
+    constants::LoopMode loopMode_{constants::LoopMode::No_Loop};
 
     bool isShuffling_{false};
     std::unordered_set<std::string> playedFiles_;
@@ -90,7 +90,7 @@ private: // music end event
     bool isCurrentlyInteractingWithProgressBar_{false};
 
 private: // new instance event
-    float timeSinceLastLockUpdate_{Constants::LockUpdateFrequency};
+    float timeSinceLastLockUpdate_{constants::LockUpdateFrequency};
 
 public:
     MusicPlayer(int argumentCount, char *arguments[]);
@@ -148,7 +148,7 @@ private:
     void initIconsTexture();
     void initWindowIcon();
 
-    bool drawImageButton(Constants::Icons::Id iconId, Rectangle bounds);
+    bool drawImageButton(constants::icons::Id iconId, Rectangle bounds);
 
     std::string secondInFloatToString(float second);
 
