@@ -85,7 +85,7 @@ void MusicPlayer::handleNewInstanceOpened(){
             }
         }
 
-        lock::UpdateLockTimeStamp();
+        // lock::UpdateLockTimeStamp();
     }
     timeSinceLastLockUpdate_ -= GetFrameTime();
 }

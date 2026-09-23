@@ -28,6 +28,7 @@ namespace constants{
     };
     
     constexpr const char *LockFileName{"/.~tinymusicplayer.locked"};
+    constexpr const char *IpcFileName{"/.~tinymusicplayer.ipc"};
     constexpr std::time_t LockExpirationTime{1};
     constexpr float LockUpdateFrequency{.1f};
 
@@ -40,7 +41,7 @@ namespace constants{
 
         constexpr int AudioBufferSize{4096};
         constexpr int AudioThreadSleepDurationMs{10};
-        constexpr int AudioThreadEventPostFrequency{100}; // roughly 100 * 10ms
+        constexpr int AudioThreadEventPostFrequency{25}; // roughly 25 * 10ms
 
         constexpr const char *AppVersion{"0.1.1"};
     } // namespace system

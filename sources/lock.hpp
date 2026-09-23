@@ -16,9 +16,9 @@ namespace lock{
 
     namespace _{
 
-        inline std::time_t GetCurrentTimestamp(){
-            return std::time(nullptr);
-        }
+        // inline std::time_t GetCurrentTimestamp(){
+        //     return std::time(nullptr);
+        // }
 
         inline std::string GetConfigDirectory(){
             std::filesystem::path lockPath;
@@ -54,79 +54,84 @@ namespace lock{
     } // namespace _
 
     static const std::string LockLocation{_::GetConfigDirectory() + constants::LockFileName};
+    static const std::string IpcLocation{_::GetConfigDirectory() + constants::IpcFileName};
+    
+#if defined(__linux__)
+    #include <sys/file.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+    static int lockFd{-1};
+#endif
 
-    inline void LockProgram(){
-        SaveFileText(LockLocation.c_str(), const_cast<char*>(std::to_string(_::GetCurrentTimestamp()).c_str()));
-    }
-
-    inline void UpdateLockTimeStamp(){
-        LockProgram();
+    inline bool TryAcquireLock(){
+#if defined(__linux__)
+        lockFd = open(LockLocation.c_str(), O_CREAT | O_RDWR, 0666);
+        if(lockFd == -1) return false;
+        
+        if(flock(lockFd, LOCK_EX | LOCK_NB) == -1){
+            close(lockFd);
+            lockFd = -1;
+            return false;
+        }
+        return true;
+#elif defined(__APPLE__)
+        return true;
+#elif defined(_WIN32)
+        return true;
+#else
+        return true;
+#endif
     }
 
     inline void UnlockProgram(){
-        if(FileExists(LockLocation.c_str())){
+#if defined(__linux__)
+        if(lockFd != -1){
+            flock(lockFd, LOCK_UN);
+            close(lockFd);
+            lockFd = -1;
             std::remove(LockLocation.c_str());
         }
-    }
-
-    inline bool IsProgramLocked(){
-        if(!FileExists(LockLocation.c_str())) return false;
-
-        std::ifstream lock(LockLocation);
-        std::string content;
-
-        bool isLocked{true};
-
-        if(std::getline(lock, content)){
-            long long lastUpdateTime{0};
-
-            try{
-                lastUpdateTime = std::stoll(content);
-            }catch(...){}
-
-            if(_::GetCurrentTimestamp() - static_cast<std::time_t>(lastUpdateTime) >= constants::LockExpirationTime){
-                UnlockProgram();
-                isLocked = false;
-            }
-        }
-        
-        lock.close();
-
-        return isLocked;
+#endif
     }
 
     inline void WriteNewFilePath(const std::string &path){
-        if(!IsProgramLocked()) return;
-
-        std::string oldTimestamp;
-        /* Get old timestamp */ {
-            std::ifstream lock(LockLocation);
-            std::string content;
-            if(std::getline(lock, content)) oldTimestamp = content;
-            lock.close();
-        } /* Get old timestamp */
-
-        std::ofstream lock(LockLocation);
-        lock << oldTimestamp << "\n" << path << "";
-        lock.close();
+        std::ofstream ipc(IpcLocation, std::ios::app);
+        if(ipc.is_open()){
+            ipc << path << "\n";
+        }
     }
 
     inline std::optional<std::string> TryGetNewFilePath(){
-        if(!FileExists(LockLocation.c_str())) return std::nullopt;
+        if(!FileExists(IpcLocation.c_str())) return std::nullopt;
 
-        std::ifstream lock(LockLocation);
-        std::string content;
+        std::ifstream ipcIn(IpcLocation);
+        if(!ipcIn.is_open()) return std::nullopt;
 
-        constexpr int targetLine{2}; // 1 based
-        for(int line{1}; line <= targetLine && std::getline(lock, content); line++){
-            if(line == targetLine){
-                return content;
+        std::string firstLine;
+        bool hasLine{static_cast<bool>(std::getline(ipcIn, firstLine))};
+        
+        std::vector<std::string> remainingLines;
+        std::string line;
+        while(std::getline(ipcIn, line)){
+            remainingLines.push_back(line);
+        }
+        ipcIn.close();
+
+        if(!hasLine || firstLine.empty()){
+            std::remove(IpcLocation.c_str());
+            return std::nullopt;
+        }
+
+        if(remainingLines.empty()){
+            std::remove(IpcLocation.c_str());
+        }else{
+            std::ofstream ipcOut(IpcLocation, std::ios::trunc);
+            for(const auto &remainingLine : remainingLines){
+                ipcOut << remainingLine << "\n";
             }
         }
 
-        lock.close();
-
-        return std::nullopt;
+        return firstLine;
     }
 
 } // namespace lock

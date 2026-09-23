@@ -14,12 +14,12 @@ MusicPlayer::MusicPlayer(int argumentCount, char *arguments[]){
 
     std::optional<std::string> path{getArgumentPath(argumentCount, arguments)};
 
-    if(lock::IsProgramLocked()){
+    if(!lock::TryAcquireLock()){
         if(path) lock::WriteNewFilePath(path.value());
         shouldClose_ = true;
     }else{
         if(path) programArgumentPath_ = path.value();
-        lock::LockProgram();
+        // lock::LockProgram();
     }
 }
 
