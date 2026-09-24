@@ -7,6 +7,8 @@
 
 #include "debug_utilities.hpp"
 
+#include <clocale>
+
 extern "C" void glfwPostEmptyEvent(void);
 
 MusicPlayer::MusicPlayer(int argumentCount, char *arguments[]){
@@ -35,7 +37,8 @@ int MusicPlayer::run(){
 }
 
 void MusicPlayer::initialize(){
-	SetConfigFlags(FLAG_WINDOW_UNDECORATED | FLAG_WINDOW_TRANSPARENT | FLAG_WINDOW_ALWAYS_RUN);
+    std::setlocale(LC_ALL, "C");
+    SetConfigFlags(FLAG_WINDOW_UNDECORATED | FLAG_WINDOW_TRANSPARENT | FLAG_WINDOW_ALWAYS_RUN | FLAG_WINDOW_HIGHDPI);
 	InitWindow(
         constants::system::WindowWidth, 
         constants::system::WindowHeight, 
@@ -45,13 +48,6 @@ void MusicPlayer::initialize(){
 	SetTargetFPS(constants::system::WindowFPS);
     
     dpiScale_ = GetWindowScaleDPI().x;
-    
-    SetWindowSize(
-        scaleToDpiInt(constants::system::WindowWidth),
-        scaleToDpiInt(constants::system::WindowHeight)
-    );
-
-    SetMouseScale(1.0f / dpiScale_, 1.0f / dpiScale_);
 
     renderTexture_ = LoadRenderTexture(
         constants::system::WindowWidth,
@@ -65,8 +61,8 @@ void MusicPlayer::initialize(){
     };
     renderDestinationRectangle_ = Rectangle{
         0, 0,
-        static_cast<float>(scaleToDpiInt(constants::system::WindowWidth)),
-        static_cast<float>(scaleToDpiInt(constants::system::WindowHeight))
+        static_cast<float>(constants::system::WindowWidth),
+        static_cast<float>(constants::system::WindowHeight)
     };
 
     SetAudioStreamBufferSizeDefault(constants::system::AudioBufferSize);
@@ -118,7 +114,7 @@ void MusicPlayer::initialize(){
                                         
                             
                                         if(packet->pts != AV_NOPTS_VALUE){
-                                            float packetTime{static_cast<float>(packet->pts) * av_q2d(this->formatContext_->streams[this->audioStreamIndex_]->time_base)};
+                                            float packetTime{static_cast<float>(packet->pts * av_q2d(this->formatContext_->streams[this->audioStreamIndex_]->time_base))};
                                             if(this->audioThreadSeekGeneration_ == this->seekGeneration_){
                                                 this->musicTimePlayed_ = packetTime;
                                             }else{
@@ -167,11 +163,27 @@ void MusicPlayer::initialize(){
         }
     });
 
+#if defined(__linux__)
+    mprisIntegration_ = std::make_unique<MprisIntegration>(MprisCallbacks{
+        .onPlayPause {[this](){ mprisPendingPlayPause_ = true; glfwPostEmptyEvent();}},
+        .onNext      {[this](){ mprisPendingNext_      = true; glfwPostEmptyEvent();}},
+        .onPrevious  {[this](){ mprisPendingPrevious_  = true; glfwPostEmptyEvent();}},
+        .onStop      {[this](){ mprisPendingPlayPause_ = true; glfwPostEmptyEvent();}},
+    });
+    std::setlocale(LC_ALL, "C");
+#endif
+
     if(!programArgumentPath_.empty()) initializeMusicStream(programArgumentPath_.c_str());
 }
 
 void MusicPlayer::update(){
     EnableEventWaiting();
+
+#if defined(__linux__)
+    if(mprisPendingPlayPause_.exchange(false))  playPauseMusicClicked();
+    if(mprisPendingNext_.exchange(false))       nextSongClicked();
+    if(mprisPendingPrevious_.exchange(false))   previousSongClicked();
+#endif
 
     handleNewInstanceOpened();
     updateMusic();

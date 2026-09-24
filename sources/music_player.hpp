@@ -22,6 +22,10 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
+#if defined(__linux__)
+#include "mpris_integration.hpp"
+#endif
+
 class MusicPlayer{
 private:
     std::thread audioThread_;
@@ -93,6 +97,14 @@ private: // music end event
 private: // new instance event
     float timeSinceLastLockUpdate_{constants::LockUpdateFrequency};
 
+#if defined(__linux__)
+    std::unique_ptr<MprisIntegration> mprisIntegration_{nullptr};
+    
+    std::atomic<bool> mprisPendingPlayPause_{false};
+    std::atomic<bool> mprisPendingNext_{false};
+    std::atomic<bool> mprisPendingPrevious_{false};
+#endif
+
 public:
     MusicPlayer(int argumentCount, char *arguments[]);
     ~MusicPlayer() = default;
@@ -156,13 +168,13 @@ private:
 
     bool isMediaFile(const std::string &path);
 
-    Vector2 scaleToDpiVector2(Vector2 values){
-        return Vector2{
-            values.x * GetWindowScaleDPI().x, 
-            values.y * GetWindowScaleDPI().y
-        };
-    }
-    float scaleToDpiFloat(float value){ return value * GetWindowScaleDPI().x;}
-    int scaleToDpiInt(int value){ return static_cast<int>(value * GetWindowScaleDPI().x);}
+    // Vector2 scaleToDpiVector2(Vector2 values){
+    //     return Vector2{
+    //         values.x * GetWindowScaleDPI().x, 
+    //         values.y * GetWindowScaleDPI().y
+    //     };
+    // }
+    // float scaleToDpiFloat(float value){ return value * GetWindowScaleDPI().x;}
+    // int scaleToDpiInt(int value){ return static_cast<int>(value * GetWindowScaleDPI().x);}
 
 };

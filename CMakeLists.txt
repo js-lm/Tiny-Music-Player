@@ -21,14 +21,14 @@ set(BUILD_GAMES    OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
     raylib
     GIT_REPOSITORY https://github.com/raysan5/raylib.git
-    GIT_TAG        5.5
+    GIT_TAG        6.0
 )
 FetchContent_MakeAvailable(raylib)
 
 FetchContent_Declare(
     raygui
     GIT_REPOSITORY https://github.com/raysan5/raygui.git
-    GIT_TAG        4.0
+    GIT_TAG        5.0
 )
 FetchContent_GetProperties(raygui)
 if(NOT raygui_POPULATED)
@@ -38,9 +38,22 @@ endif()
 FetchContent_Declare(
     fmt
     GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG        12.1.0
+    GIT_TAG        12.2.0
 )
 FetchContent_MakeAvailable(fmt)
+
+if(UNIX AND NOT APPLE)
+    set(SDBUSCPP_BUILD_CODEGEN OFF CACHE BOOL "" FORCE)
+    set(SDBUSCPP_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(SDBUSCPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(
+        sdbus-cpp
+        GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
+        GIT_TAG        v2.3.1
+    )
+    FetchContent_MakeAvailable(sdbus-cpp)
+endif()
+
 
 include(ExternalProject)
 
@@ -48,7 +61,7 @@ set(FFMPEG_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/ffmpeg")
 set(FFMPEG_INSTALL_DIR "${FFMPEG_PREFIX}/install")
 
 ExternalProject_Add(ffmpeg
-    URL "https://ffmpeg.org/releases/ffmpeg-7.0.1.tar.xz"
+    URL "https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz"
     PREFIX ${FFMPEG_PREFIX}
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
         --prefix=${FFMPEG_INSTALL_DIR}
@@ -58,7 +71,6 @@ ExternalProject_Add(ffmpeg
         --disable-doc
         --disable-avdevice
         --disable-swscale
-        --disable-postproc
         --disable-avfilter
         --disable-network
         --disable-everything
@@ -107,5 +119,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     pthread
     X11
 )
+
+if(UNIX AND NOT APPLE)
+    target_link_libraries(${PROJECT_NAME} PRIVATE sdbus-c++)
+endif()
 
 add_dependencies(${PROJECT_NAME} ffmpeg)

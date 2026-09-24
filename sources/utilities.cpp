@@ -39,12 +39,11 @@ bool MusicPlayer::drawImageButton(constants::icons::Id iconId, Rectangle bounds)
         offsetYPosition = constants::icons::IconSize.y * 1; // hover
     }
     
-    int pixelSize{scaleToDpiInt(1)};
     Rectangle sourceRectangle{
-        constants::icons::IconSize.x * static_cast<float>(static_cast<int>(iconId)) * pixelSize,
-        static_cast<float>(offsetYPosition) * pixelSize,
-        constants::icons::IconSize.x * pixelSize,
-        constants::icons::IconSize.y * pixelSize
+        constants::icons::IconSize.x * static_cast<float>(static_cast<int>(iconId)),
+        static_cast<float>(offsetYPosition),
+        constants::icons::IconSize.x,
+        constants::icons::IconSize.y
     };
     
     Rectangle destinationRectangle{
@@ -61,40 +60,30 @@ bool MusicPlayer::drawImageButton(constants::icons::Id iconId, Rectangle bounds)
 
 void MusicPlayer::initializeIconsTexture(){
     Image iconsImage{GenImageColor(
-        scaleToDpiInt(constants::icons::NumberOfColumns), 
-        scaleToDpiInt(constants::icons::NumberOfRows * 3), 
+        constants::icons::NumberOfColumns, 
+        constants::icons::NumberOfRows * 3, 
         BLANK
     )};
 
-    const int pixelSize{scaleToDpiInt(1)};
-
     // void ImageDrawRectangle(Image *dst, int posX, int posY, int width, int height, Color color);       // Draw rectangle within an image
-
+    
 
     for(size_t row{0}; row < constants::icons::NumberOfRows; row++){
         const std::bitset<constants::icons::NumberOfColumns> &bitsetRow{constants::icons::IconsBitset[row]};
         for(size_t column{0}; column < constants::icons::NumberOfColumns; column++){
             if(bitsetRow.test(column)){
                 // ImageDrawPixel(&iconsImage, column, row, constants::icons::NormalColor);
-                ImageDrawRectangle(
+                ImageDrawPixel(&iconsImage, column, row, constants::icons::NormalColor);
+                ImageDrawPixel(
                     &iconsImage, 
-                    column * pixelSize, 
-                    row * pixelSize, 
-                    pixelSize, pixelSize, 
-                    constants::icons::NormalColor
-                );
-                ImageDrawRectangle(
-                    &iconsImage, 
-                    column * pixelSize, 
-                    row * pixelSize + constants::icons::IconSize.y * pixelSize, 
-                    pixelSize, pixelSize, 
+                    column, 
+                    row + constants::icons::IconSize.y, 
                     constants::icons::HoverColor
                 );
-                ImageDrawRectangle(
+                ImageDrawPixel(
                     &iconsImage, 
-                    column * pixelSize, 
-                    row * pixelSize + constants::icons::IconSize.y * 2 * pixelSize, 
-                    pixelSize, pixelSize, 
+                    column, 
+                    row + constants::icons::IconSize.y * 2, 
                     constants::icons::ActiveColor
                 );
             }
@@ -379,6 +368,13 @@ bool MusicPlayer::tryStartMusicStream(const char *filename){
     currentFileName_ = GetFileName(filename);
 
     reloadFont();
+
+#if defined(__linux__)
+    if(mprisIntegration_){
+        mprisIntegration_->updateMetadata(displayedMusicTitle_, displayedArtistName_);
+        mprisIntegration_->updatePlaybackStatus(true);
+    }
+#endif
 
     return true;
 }

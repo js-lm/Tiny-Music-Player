@@ -4,7 +4,7 @@ script:
   - rm -rf tiny-music-player.AppDir/usr/share/man AppDir/usr/share/doc/*/README.* tiny-music-player.AppDir/usr/share/doc/*/changelog.*
 
 AppDir:
-  path: ./tiny-music-player.AppDir
+  path: ./AppDir
   app_info:
     id: com.1kib.tiny-music-player
     name: Tiny Music Player

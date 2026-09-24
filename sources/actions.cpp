@@ -75,6 +75,12 @@ void MusicPlayer::playPauseMusicClicked(){
         if(!IsAudioStreamPlaying(audioStream_) && formatContext_ != nullptr) PlayAudioStream(audioStream_);
         isManuallyPaused_ = false;
     }
+
+#if defined(__linux__)
+    if(mprisIntegration_){
+        mprisIntegration_->updatePlaybackStatus(!isManuallyPaused_);
+    }
+#endif
 }
 
 void MusicPlayer::nextSongClicked(){

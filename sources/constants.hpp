@@ -41,7 +41,7 @@ namespace constants{
 
         constexpr int AudioBufferSize{4096};
         constexpr int AudioThreadSleepDurationMs{10};
-        constexpr int AudioThreadEventPostFrequency{25}; // roughly 25 * 10ms
+        constexpr int AudioThreadEventPostFrequency{10}; // roughly 10 * 10ms
 
         constexpr const char *AppVersion{"1.0"};
     } // namespace system

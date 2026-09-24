@@ -7,8 +7,6 @@
 
 void MusicPlayer::handleWindowDrag(){
     Vector2 currentMouseWindowPosition{GetMousePosition()};
-    currentMouseWindowPosition.x *= dpiScale_;
-    currentMouseWindowPosition.y *= dpiScale_;
 
     if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isAnyWidgetHovered_){
         isDragging_ = true;
@@ -52,6 +50,9 @@ void MusicPlayer::handleMusicEnd(){
     case constants::LoopMode::No_Loop:{
         // PauseAudioStream(audioStream_);
         isManuallyPaused_ = true;
+#if defined(__linux__)
+        if(mprisIntegration_) mprisIntegration_->updatePlaybackStatus(false);
+#endif
     } return;
     case constants::LoopMode::Single_Music_Loop:{
         av_seek_frame(formatContext_, -1, 0, AVSEEK_FLAG_BACKWARD);
@@ -65,6 +66,9 @@ void MusicPlayer::handleMusicEnd(){
     case constants::LoopMode::Directory_Loop:{
         if(!findNextValidMusic(true, false)){
             isManuallyPaused_ = true;
+#if defined(__linux__)
+            if(mprisIntegration_) mprisIntegration_->updatePlaybackStatus(false);
+#endif
         }
     } return;
 
