@@ -151,12 +151,36 @@ void MusicPlayer::initialize(){
                     }
                 }
             }
-            static int counter{0};
-            if(counter++ >= constants::system::AudioThreadEventPostFrequency){
-                glfwPostEmptyEvent();
-                counter = 0;
-            }
+            // static int counter{0};
+            // if(counter++ >= constants::system::AudioThreadEventPostFrequency){
+            //     glfwPostEmptyEvent();
+            //     counter = 0;
+            // }
             std::this_thread::sleep_for(std::chrono::milliseconds(constants::system::AudioThreadSleepDurationMs));
+        }
+    });
+
+    eventsThreadRunning_ = true;
+    eventsThread_ = std::thread([this](){
+        while(this->eventsThreadRunning_){
+            bool shouldWakeRenderingThread{false};
+
+            if(FileExists(lock::InterProcessCommunicationLocation.c_str())){
+                shouldWakeRenderingThread = true;
+            }
+
+            float currentTime{this->musicTimePlayed_};
+            float interval{constants::system::ProgressBarUpdateInterval};
+            int currentBucket{static_cast<int>(currentTime / interval)};
+            int previousBucket{static_cast<int>(this->previousProgressUpdateTime_ / interval)};
+            if(currentBucket != previousBucket){
+                this->previousProgressUpdateTime_ = currentTime;
+                shouldWakeRenderingThread = true;
+            }
+
+            if(shouldWakeRenderingThread) glfwPostEmptyEvent();
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(constants::system::EventThreadSleepDurationMs));
         }
     });
 
@@ -196,6 +220,10 @@ void MusicPlayer::draw(){
     
     drawInterface();
     
+    if(!IsWindowFocused()){
+        DrawRectangle(0, 0, constants::system::WindowWidth, constants::system::WindowHeight, constants::ui::UnfocusedOverlayColor);
+    }
+    
     EndTextureMode();
     
     BeginDrawing();
@@ -216,6 +244,9 @@ void MusicPlayer::draw(){
 void MusicPlayer::shutdown(){
     audioThreadRunning_ = false;
     if(audioThread_.joinable()) audioThread_.join();
+
+    eventsThreadRunning_ = false;
+    if(eventsThread_.joinable()) eventsThread_.join();
 
     tryUnloadMusic();
     CloseAudioDevice();

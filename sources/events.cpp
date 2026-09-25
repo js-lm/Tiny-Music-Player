@@ -80,16 +80,16 @@ void MusicPlayer::handleKeyboard(){
 }
 
 void MusicPlayer::handleNewInstanceOpened(){
-    if(timeSinceLastLockUpdate_ <= 0){
-        timeSinceLastLockUpdate_ = constants::LockUpdateFrequency;
+    // if(timeSinceLastLockUpdate_ <= 0){
+    //     timeSinceLastLockUpdate_ = constants::LockUpdateFrequency;
 
-        if(auto newMusic{lock::TryGetNewFilePath()}){
-            if(isMediaFile(newMusic.value().c_str())){
-                initializeMusicStream(newMusic.value().c_str());
-            }
+    if(auto newMusic{lock::TryGetNewFilePath()}){
+        if(isMediaFile(newMusic.value().c_str())){
+            initializeMusicStream(newMusic.value().c_str());
         }
+    }
 
         // lock::UpdateLockTimeStamp();
-    }
-    timeSinceLastLockUpdate_ -= GetFrameTime();
+    // }
+    // timeSinceLastLockUpdate_ -= GetFrameTime();
 }

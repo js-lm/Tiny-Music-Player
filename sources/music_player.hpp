@@ -30,6 +30,10 @@ private:
     std::atomic<bool> audioThreadRunning_{false};
     std::recursive_mutex musicMutex_;
 
+    std::thread eventsThread_;
+    std::atomic<bool> eventsThreadRunning_{false};
+    float previousProgressUpdateTime_{.0f};
+
 private:
     AVFormatContext *formatContext_{nullptr};
     AVCodecContext *codecContext_{nullptr};
@@ -92,8 +96,6 @@ private: // music end event
     bool isManuallyPaused_{false};
     bool isCurrentlyInteractingWithProgressBar_{false};
 
-private: // new instance event
-    float timeSinceLastLockUpdate_{constants::LockUpdateFrequency};
 
 #if defined(__linux__)
     std::unique_ptr<MprisIntegration> mprisIntegration_{nullptr};

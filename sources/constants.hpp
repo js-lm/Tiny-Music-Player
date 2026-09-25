@@ -3,7 +3,6 @@
 #include <raylib.h>
 
 #include <bitset>
-#include <ctime>
 #include <vector>
 #include <string>
 
@@ -29,8 +28,6 @@ namespace constants{
     
     constexpr const char *LockFileName{"/.~tinymusicplayer.locked"};
     constexpr const char *InterProcessCommunicationFileName{"/.~tinymusicplayer.ipc"};
-    constexpr std::time_t LockExpirationTime{1};
-    constexpr float LockUpdateFrequency{.1f};
 
     namespace system{
         constexpr int WindowWidth{600};
@@ -41,7 +38,9 @@ namespace constants{
 
         constexpr int AudioBufferSize{4096};
         constexpr int AudioThreadSleepDurationMs{10};
-        constexpr int AudioThreadEventPostFrequency{10}; // roughly 10 * 10ms
+
+        constexpr int EventThreadSleepDurationMs{50};
+        constexpr float ProgressBarUpdateInterval{.25f};
 
         constexpr const char *AppVersion{"1.1"};
     } // namespace system
@@ -85,6 +84,8 @@ namespace constants{
         constexpr float TooltipYOffset{12.0f};
         constexpr float TooltipFallbackYOffset{16.0f};
         
+        constexpr Color UnfocusedOverlayColor{0, 0, 0, 40};
+
         constexpr Color TooltipBackgroundColor{245, 245, 245, 255};
         constexpr Color TooltipBorderColor{200, 200, 200, 255};
         constexpr float TooltipBorderWidth{1.0f};
