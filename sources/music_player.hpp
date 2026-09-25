@@ -74,7 +74,10 @@ private:
 
     bool isShuffling_{false};
     std::unordered_set<std::string> playedFiles_;
+    std::vector<std::string> shuffleHistory_;
+    size_t shuffleHistoryIndex_{0};
     size_t totalFilesInDirectory_{0};
+    bool hasMultipleMediaFiles_{false};
     
 private:
     std::string currentDirectoryPath_;
@@ -95,6 +98,7 @@ private: // progress bar drag event
 private: // music end event
     bool isManuallyPaused_{false};
     bool isCurrentlyInteractingWithProgressBar_{false};
+    bool isAtEndOfMusic_{false};
 
 
 #if defined(__linux__)
@@ -103,6 +107,10 @@ private: // music end event
     std::atomic<bool> mprisPendingPlayPause_{false};
     std::atomic<bool> mprisPendingNext_{false};
     std::atomic<bool> mprisPendingPrevious_{false};
+
+    bool lastMprisCanPlayPause_{true};
+    bool lastMprisCanGoNext_{true};
+    bool lastMprisCanGoPrevious_{true};
 #endif
 
 public:
@@ -162,7 +170,7 @@ private:
     void initializeIconsTexture();
     void initializeWindowIcon();
 
-    bool drawImageButton(constants::icons::Id iconId, Rectangle bounds);
+    bool drawImageButton(constants::icons::Id iconId, Rectangle bounds, bool isDisabled = false);
 
     std::string secondInFloatToString(float second);
 

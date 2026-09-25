@@ -1,15 +1,14 @@
 #include "mpris_integration.hpp"
 
+#include "constants.hpp"
+
 #if defined(__linux__)
 
 #include <sdbus-c++/sdbus-c++.h>
 #include <iostream>
 #include <map>
 
-const std::string MPRIS_NAME{"org.mpris.MediaPlayer2.tinymusicplayer"};
-const std::string MPRIS_PATH{"/org/mpris/MediaPlayer2"};
-const std::string MPRIS_ROOT_INTERFACE{"org.mpris.MediaPlayer2"};
-const std::string MPRIS_PLAYER_INTERFACE{"org.mpris.MediaPlayer2.Player"};
+
 
 MprisIntegration::MprisIntegration(MprisCallbacks callbacks) 
     : callbacks_(std::move(callbacks)){
@@ -29,7 +28,7 @@ void MprisIntegration::emitPropertyChange(const std::string &propertyName){
 
     try{
         object_->emitPropertiesChangedSignal(
-            sdbus::InterfaceName{MPRIS_PLAYER_INTERFACE},
+            sdbus::InterfaceName{constants::mpris::PlayerInterface},
             {sdbus::PropertyName{propertyName}}
         );
     }catch(const sdbus::Error &error){
@@ -48,17 +47,27 @@ void MprisIntegration::updateMetadata(const std::string &title, const std::strin
     emitPropertyChange("Metadata");
 }
 
+void MprisIntegration::updateControls(bool canPlayPause, bool canGoNext, bool canGoPrevious){
+    canPlayPause_ = canPlayPause;
+    canGoNext_ = canGoNext;
+    canGoPrevious_ = canGoPrevious;
+    emitPropertyChange("CanPlay");
+    emitPropertyChange("CanPause");
+    emitPropertyChange("CanGoNext");
+    emitPropertyChange("CanGoPrevious");
+}
+
 void MprisIntegration::setupDbus(){
-    connection_ = sdbus::createSessionBusConnection(sdbus::ServiceName{MPRIS_NAME});
-    object_ = sdbus::createObject(*connection_, sdbus::ObjectPath{MPRIS_PATH});
+    connection_ = sdbus::createSessionBusConnection(sdbus::ServiceName{constants::mpris::Name});
+    object_ = sdbus::createObject(*connection_, sdbus::ObjectPath{constants::mpris::Path});
 
     // org.mpris.MediaPlayer2
-    object_->addVTable(sdbus::InterfaceName{MPRIS_ROOT_INTERFACE},
+    object_->addVTable(sdbus::InterfaceName{constants::mpris::RootInterface},
         sdbus::registerProperty("CanQuit").withGetter([](){ return false;}),
         sdbus::registerProperty("CanRaise").withGetter([](){ return false;}),
         sdbus::registerProperty("HasTrackList").withGetter([](){ return false;}),
-        sdbus::registerProperty("Identity").withGetter([](){ return "Tiny Music Player";}),
-        sdbus::registerProperty("DesktopEntry").withGetter([](){ return "tinymusicplayer";}),
+        sdbus::registerProperty("Identity").withGetter([](){ return constants::system::WindowName;}),
+        sdbus::registerProperty("DesktopEntry").withGetter([](){ return constants::mpris::DesktopEntry;}),
         sdbus::registerProperty("SupportedUriSchemes").withGetter([](){ return std::vector<std::string>{"file"};}),
         sdbus::registerProperty("SupportedMimeTypes").withGetter([](){ return std::vector<std::string>{"audio/mpeg", "audio/flac", "audio/x-wav"};}),
         sdbus::registerMethod("Raise").implementedAs([](){}),
@@ -66,7 +75,7 @@ void MprisIntegration::setupDbus(){
     );
 
     // org.mpris.MediaPlayer2.Player
-    object_->addVTable(sdbus::InterfaceName{MPRIS_PLAYER_INTERFACE},
+    object_->addVTable(sdbus::InterfaceName{constants::mpris::PlayerInterface},
         sdbus::registerMethod("PlayPause").implementedAs([this](){ if(callbacks_.onPlayPause) callbacks_.onPlayPause();}),
         sdbus::registerMethod("Play").implementedAs([this](){ if(callbacks_.onPlayPause) callbacks_.onPlayPause();}),
         sdbus::registerMethod("Pause").implementedAs([this](){ if(callbacks_.onPlayPause) callbacks_.onPlayPause();}),
@@ -91,10 +100,10 @@ void MprisIntegration::setupDbus(){
         sdbus::registerProperty("Position").withGetter([]()->int64_t{ return 0;}),
         sdbus::registerProperty("MinimumRate").withGetter([](){ return 1.0;}),
         sdbus::registerProperty("MaximumRate").withGetter([](){ return 1.0;}),
-        sdbus::registerProperty("CanGoNext").withGetter([](){ return true;}),
-        sdbus::registerProperty("CanGoPrevious").withGetter([](){ return true;}),
-        sdbus::registerProperty("CanPlay").withGetter([](){ return true;}),
-        sdbus::registerProperty("CanPause").withGetter([](){ return true;}),
+        sdbus::registerProperty("CanGoNext").withGetter([this](){ return canGoNext_;}),
+        sdbus::registerProperty("CanGoPrevious").withGetter([this](){ return canGoPrevious_;}),
+        sdbus::registerProperty("CanPlay").withGetter([this](){ return canPlayPause_;}),
+        sdbus::registerProperty("CanPause").withGetter([this](){ return canPlayPause_;}),
         sdbus::registerProperty("CanSeek").withGetter([](){ return false;}),
         sdbus::registerProperty("CanControl").withGetter([](){ return true;})
     );

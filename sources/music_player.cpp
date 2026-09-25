@@ -144,9 +144,11 @@ void MusicPlayer::initialize(){
                             UpdateAudioStream(this->audioStream_, this->audioBuffer_.data(), this->audioBuffer_.size() / 2);
                             this->audioBuffer_.clear();
                             StopAudioStream(this->audioStream_);
+                            glfwPostEmptyEvent();
 
                         }else{
                             StopAudioStream(this->audioStream_);
+                            glfwPostEmptyEvent();
                         }
                     }
                 }

@@ -50,6 +50,7 @@ void MusicPlayer::handleMusicEnd(){
     case constants::LoopMode::No_Loop:{
         // PauseAudioStream(audioStream_);
         isManuallyPaused_ = true;
+        isAtEndOfMusic_ = true;
 #if defined(__linux__)
         if(mprisIntegration_) mprisIntegration_->updatePlaybackStatus(false);
 #endif
@@ -66,6 +67,7 @@ void MusicPlayer::handleMusicEnd(){
     case constants::LoopMode::Directory_Loop:{
         if(!findNextValidMusic(true, false)){
             isManuallyPaused_ = true;
+            isAtEndOfMusic_ = true;
 #if defined(__linux__)
             if(mprisIntegration_) mprisIntegration_->updatePlaybackStatus(false);
 #endif

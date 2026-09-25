@@ -183,6 +183,27 @@ void MusicPlayer::drawInterface(){
     } /* Music Progress Bar */
     
     /* Music Controls */ {
+        bool canPlayPause{formatContext_ != nullptr};
+        bool canGoNext{formatContext_ != nullptr && hasMultipleMediaFiles_};
+        bool canGoPrevious{
+            (formatContext_ != nullptr) 
+         && (
+                (musicProgress_ * currentMusicTotalLength_ >= 2.0f)
+             || (hasMultipleMediaFiles_ && (!isShuffling_ || shuffleHistoryIndex_ > 0))
+            )
+        };
+
+#if defined(__linux__)
+        if(mprisIntegration_){
+            if(canPlayPause != lastMprisCanPlayPause_ || canGoNext != lastMprisCanGoNext_ || canGoPrevious != lastMprisCanGoPrevious_){
+                lastMprisCanPlayPause_ = canPlayPause;
+                lastMprisCanGoNext_ = canGoNext;
+                lastMprisCanGoPrevious_ = canGoPrevious;
+                mprisIntegration_->updateControls(canPlayPause, canGoNext, canGoPrevious);
+            }
+        }
+#endif
+
         const int totalControlWidth{
             constants::ui::ButtonSize * constants::ui::TotalMusicControlButtons + 
             constants::ui::MusicControlInnerSpacing * 2 + 
@@ -206,7 +227,7 @@ void MusicPlayer::drawInterface(){
             static_cast<float>(constants::ui::ButtonSize), 
             static_cast<float>(constants::ui::ButtonSize)
         };
-        if(drawImageButton(constants::icons::Id::Previous_Music, previousRectangle)){
+        if(drawImageButton(constants::icons::Id::Previous_Music, previousRectangle, !canGoPrevious)){
             previousSongClicked();
         }
         
@@ -221,7 +242,7 @@ void MusicPlayer::drawInterface(){
             (formatContext_ != nullptr && IsAudioStreamPlaying(audioStream_)) 
                 ? constants::icons::Id::Pause : constants::icons::Id::Play
         };
-        if(drawImageButton(playPauseIcon, playPauseRectangle)){
+        if(drawImageButton(playPauseIcon, playPauseRectangle, !canPlayPause)){
             playPauseMusicClicked();
         }
         
@@ -231,7 +252,7 @@ void MusicPlayer::drawInterface(){
             static_cast<float>(constants::ui::ButtonSize), 
             static_cast<float>(constants::ui::ButtonSize)
         };
-        if(drawImageButton(constants::icons::Id::Next_Music, nextRectangle)){
+        if(drawImageButton(constants::icons::Id::Next_Music, nextRectangle, !canGoNext)){
             nextSongClicked();
         }
         

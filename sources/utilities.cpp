@@ -18,7 +18,24 @@
 
 #include <raymath.h>
 
-bool MusicPlayer::drawImageButton(constants::icons::Id iconId, Rectangle bounds){
+bool MusicPlayer::drawImageButton(constants::icons::Id iconId, Rectangle bounds, bool isDisabled){
+    if(isDisabled){
+        Rectangle sourceRectangle{
+            constants::icons::IconSize.x * static_cast<float>(static_cast<int>(iconId)),
+            static_cast<float>(constants::icons::IconSize.y * 3), // disabled
+            constants::icons::IconSize.x,
+            constants::icons::IconSize.y
+        };
+        Rectangle destinationRectangle{
+            bounds.x + constants::icons::IconOffset.x,
+            bounds.y + constants::icons::IconOffset.y,
+            constants::icons::IconSize.x,
+            constants::icons::IconSize.y
+        };
+        DrawTexturePro(iconsTexture_, sourceRectangle, destinationRectangle, Vector2{0, 0}, .0f, WHITE);
+        return false;
+    }
+
     Vector2 mousePosition{GetMousePosition()};
     bool isHovered{CheckCollisionPointRec(mousePosition, bounds)};
     bool isClicked{false};
@@ -59,7 +76,7 @@ bool MusicPlayer::drawImageButton(constants::icons::Id iconId, Rectangle bounds)
 void MusicPlayer::initializeIconsTexture(){
     Image iconsImage{GenImageColor(
         constants::icons::NumberOfColumns, 
-        constants::icons::NumberOfRows * 3, 
+        constants::icons::NumberOfRows * 4, 
         BLANK
     )};
 
@@ -83,6 +100,12 @@ void MusicPlayer::initializeIconsTexture(){
                     column, 
                     row + constants::icons::IconSize.y * 2, 
                     constants::icons::ActiveColor
+                );
+                ImageDrawPixel(
+                    &iconsImage, 
+                    column, 
+                    row + constants::icons::IconSize.y * 3, 
+                    constants::icons::DisabledColor
                 );
             }
         }
@@ -177,6 +200,8 @@ void MusicPlayer::resetMusicState(){
     tryUnloadMusic();
 
     musicProgress_ = .0f;
+    isAtEndOfMusic_ = false;
+
 
     totalLengthString_ = "--:--";
     currentProgressString_ = totalLengthString_;
@@ -226,14 +251,28 @@ void MusicPlayer::initializeMusicStream(const char *path){
     currentDirectoryPath_ = directoryPath;
     
     totalFilesInDirectory_ = 0;
+    hasMultipleMediaFiles_ = false;
+    int mediaFileCount{0};
     try{
         for(const auto &entry : std::filesystem::directory_iterator(currentDirectoryPath_)){
-            if(entry.is_regular_file()) totalFilesInDirectory_++;
+            if(entry.is_regular_file()){
+                totalFilesInDirectory_++;
+                if(mediaFileCount < 2 && isMediaFile(entry.path().filename().string())){
+                    mediaFileCount++;
+                }
+            }
         }
     }catch(...){}
+    if(mediaFileCount >= 2) hasMultipleMediaFiles_ = true;
     
     if(!currentFileName_.empty()){
-        tryStartMusicStream(path);
+        if(tryStartMusicStream(path)){
+            if(isShuffling_){
+                shuffleHistory_.push_back(currentFileName_);
+                shuffleHistoryIndex_ = 0;
+                playedFiles_.insert(currentFileName_);
+            }
+        }
     }else{
         findNextValidMusic(true);
     }
@@ -243,7 +282,10 @@ void MusicPlayer::unloadDirectory(){
     currentDirectoryPath_.clear();
     currentFileName_.clear();
     playedFiles_.clear();
+    shuffleHistory_.clear();
+    shuffleHistoryIndex_ = 0;
     totalFilesInDirectory_ = 0;
+    hasMultipleMediaFiles_ = false;
     resetMusicState();
 }
 
@@ -397,32 +439,55 @@ bool MusicPlayer::findNextValidMusic(bool isForward, bool allowLoop){
     if(mediaFiles.empty()) return false;
 
     if(isShuffling_){
-        if(!currentFileName_.empty()) playedFiles_.insert(currentFileName_);
+        if(isForward){
+            if(!shuffleHistory_.empty() && shuffleHistoryIndex_ + 1 < shuffleHistory_.size()){
+                shuffleHistoryIndex_++;
+                std::string candidate{shuffleHistory_[shuffleHistoryIndex_]};
+                std::string fullPath{currentDirectoryPath_ + "/" + candidate};
+                if(tryStartMusicStream(fullPath.c_str())){
+                    return true;
+                }
+            }else{
+                if(!currentFileName_.empty()) playedFiles_.insert(currentFileName_);
 
-        std::vector<std::string> unplayedFiles;
-        for(const auto &file : mediaFiles){
-            if(playedFiles_.find(file) == playedFiles_.end()){
-                unplayedFiles.push_back(file);
+                std::vector<std::string> unplayedFiles;
+                for(const auto &file : mediaFiles){
+                    if(playedFiles_.find(file) == playedFiles_.end()){
+                        unplayedFiles.push_back(file);
+                    }
+                }
+
+                if(unplayedFiles.empty()){
+                    if(!allowLoop) return false;
+                    playedFiles_.clear();
+                    if(!currentFileName_.empty()) playedFiles_.insert(currentFileName_);
+                    unplayedFiles = mediaFiles;
+                }
+
+                std::random_device randomDevice;
+                std::mt19937 generator{randomDevice()};
+                std::shuffle(unplayedFiles.begin(), unplayedFiles.end(), generator);
+
+                for(const auto &candidate : unplayedFiles){
+                    std::string fullPath{currentDirectoryPath_ + "/" + candidate};
+                    if(tryStartMusicStream(fullPath.c_str())){
+                        playedFiles_.insert(candidate);
+                        shuffleHistory_.push_back(candidate);
+                        shuffleHistoryIndex_ = shuffleHistory_.size() - 1;
+                        return true;
+                    }
+                }
             }
-        }
-
-        if(unplayedFiles.empty()){
-            if(!allowLoop) return false;
-            playedFiles_.clear();
-            if(!currentFileName_.empty()) playedFiles_.insert(currentFileName_);
-            unplayedFiles = mediaFiles;
-        }
-
-        std::random_device randomDevice;
-        std::mt19937 generator{randomDevice()};
-        std::shuffle(unplayedFiles.begin(), unplayedFiles.end(), generator);
-
-        for(const auto &candidate : unplayedFiles){
-            std::string fullPath{currentDirectoryPath_ + "/" + candidate};
-            if(tryStartMusicStream(fullPath.c_str())){
-                playedFiles_.insert(candidate);
-                return true;
+        }else{
+            if(shuffleHistoryIndex_ > 0){
+                shuffleHistoryIndex_--;
+                std::string candidate{shuffleHistory_[shuffleHistoryIndex_]};
+                std::string fullPath{currentDirectoryPath_ + "/" + candidate};
+                if(tryStartMusicStream(fullPath.c_str())){
+                    return true;
+                }
             }
+            return false;
         }
     }else{
         std::sort(mediaFiles.begin(), mediaFiles.end(), [](const std::string &a, const std::string &b){

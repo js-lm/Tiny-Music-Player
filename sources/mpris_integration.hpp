@@ -25,6 +25,7 @@ public:
 
     void updatePlaybackStatus(bool isPlaying);
     void updateMetadata(const std::string &title, const std::string &artist);
+    void updateControls(bool canPlayPause, bool canGoNext, bool canGoPrevious);
 
 private:
     void setupDbus();
@@ -38,6 +39,10 @@ private:
     bool isPlaying_{false};
     std::string currentTitle_;
     std::string currentArtist_;
+
+    bool canPlayPause_{true};
+    bool canGoNext_{true};
+    bool canGoPrevious_{true};
 };
 
 #endif // __linux__

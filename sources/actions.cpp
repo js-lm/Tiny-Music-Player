@@ -32,15 +32,33 @@ void MusicPlayer::goToFileClicked(){
 
 void MusicPlayer::toggleShuffleClicked(){
     isShuffling_ = !isShuffling_;
-    if(isShuffling_) playedFiles_.clear();
+    if(isShuffling_){
+        playedFiles_.clear();
+        shuffleHistory_.clear();
+        if(!currentFileName_.empty()){
+            shuffleHistory_.push_back(currentFileName_);
+            shuffleHistoryIndex_ = 0;
+            playedFiles_.insert(currentFileName_);
+        }
+    }
 }
 
 void MusicPlayer::previousSongClicked(){
+    if(formatContext_ == nullptr) return;
+
     // if(IsMusicValid(music_)){
     //     if(GetMusicTimePlayed(music_) < 1.0f){
     if(formatContext_ != nullptr){
-        if(musicProgress_ * currentMusicTotalLength_ < 1.0f){
-            findNextValidMusic(false);
+        if(musicProgress_ * currentMusicTotalLength_ < 2.0f){
+            if(!findNextValidMusic(false)){
+                av_seek_frame(formatContext_, -1, 0, AVSEEK_FLAG_BACKWARD);
+                avcodec_flush_buffers(codecContext_);
+                audioBuffer_.clear();
+                musicTimePlayed_ = .0f;
+                PlayAudioStream(audioStream_);
+                currentProgressString_ = secondInFloatToString(.0f);
+                isAtEndOfMusic_ = false;
+            }
         }else{
             // PlayMusicStream(music_);
             av_seek_frame(formatContext_, -1, 0, AVSEEK_FLAG_BACKWARD);
@@ -49,16 +67,19 @@ void MusicPlayer::previousSongClicked(){
             musicTimePlayed_ = .0f;
             PlayAudioStream(audioStream_);
             currentProgressString_ = secondInFloatToString(.0f);
+            isAtEndOfMusic_ = false;
         }
     }
 }
 
 void MusicPlayer::playPauseMusicClicked(){
+    if(formatContext_ == nullptr) return;
+
     if(IsAudioStreamPlaying(audioStream_)){
         PauseAudioStream(audioStream_);
         isManuallyPaused_ = true;
     }else{
-        if(musicProgress_ >= 0.999f && formatContext_ != nullptr){
+        if(isAtEndOfMusic_ && formatContext_ != nullptr){
             if(loopMode_ == constants::LoopMode::Directory_Loop){
                 findNextValidMusic(true, true);
             }else{
@@ -68,6 +89,7 @@ void MusicPlayer::playPauseMusicClicked(){
                 musicTimePlayed_ = .0f;
                 currentProgressString_ = secondInFloatToString(.0f);
             }
+            isAtEndOfMusic_ = false;
         }
         ResumeAudioStream(audioStream_);
         if(!IsAudioStreamPlaying(audioStream_) && formatContext_ != nullptr) PlayAudioStream(audioStream_);
@@ -82,6 +104,7 @@ void MusicPlayer::playPauseMusicClicked(){
 }
 
 void MusicPlayer::nextSongClicked(){
+    if(formatContext_ == nullptr) return;
     findNextValidMusic(true);
 }
 
@@ -115,6 +138,7 @@ void MusicPlayer::progressBarClicked(){
         musicTimePlayed_ = musicProgress_ * currentMusicTotalLength_;
         currentProgressString_ = secondInFloatToString(musicTimePlayed_);
         seekGeneration_++;
+        isAtEndOfMusic_ = false;
         
         bool wasPlaying{IsAudioStreamPlaying(audioStream_)};
         StopAudioStream(audioStream_);
