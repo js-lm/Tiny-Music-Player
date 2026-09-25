@@ -2,8 +2,6 @@
 
 #include "constants.hpp"
 
-#include "debug_utilities.hpp"
-
 void MusicPlayer::drawInterface(){
     std::lock_guard<std::recursive_mutex> lock{musicMutex_};
     isAnyWidgetHovered_ = false;
@@ -103,24 +101,21 @@ void MusicPlayer::drawInterface(){
             static_cast<float>(constants::ui::ProgressBarHeight)
         };
         
-        // if(!IsMusicValid(music_)) GuiDisable();
-        if(formatContext_ == nullptr) GuiDisable();
+        // // if(!IsMusicValid(music_)) GuiDisable();
+        // if(formatContext_ == nullptr) GuiDisable();
         
         Vector2 mousePosition{GetMousePosition()};
         bool isHoveringProgressBar{CheckCollisionPointRec(mousePosition, progressBarRectangle) && (formatContext_ != nullptr)};
         
-        // std::string tooltipString;
-        // if(isHoveringProgressBar && currentMusicTotalLength_ > 0){
-        //     float hoveredProgress{(mousePosition.x - progressBarRectangle.x) / progressBarRectangle.width};
-        //     if(hoveredProgress < .0f) hoveredProgress = .0f;
-        //     if(hoveredProgress > 1.0f) hoveredProgress = 1.0f;
-        //     tooltipString = secondInFloatToString(hoveredProgress * currentMusicTotalLength_);
-        //     GuiEnableTooltip();
-        //     GuiSetTooltip(tooltipString.c_str());
-        // }
+        Color sliderBackgroundColor{(formatContext_ == nullptr) ? constants::ui::ProgressBarBackgroundColorDisabled : constants::ui::ProgressBarBackgroundColor};
+        Color sliderProgressColor{(formatContext_ == nullptr) ? constants::ui::ProgressBarFillColorDisabled : constants::ui::ProgressBarFillColor};
         
-        float oldProgress{musicProgress_};
-        GuiSliderBar(progressBarRectangle, "", "", &musicProgress_, .0f, 1.0f);
+        DrawRectangleRec(progressBarRectangle, sliderBackgroundColor);
+        if(musicProgress_ > .0f){
+            Rectangle progressFill{progressBarRectangle};
+            progressFill.width *= musicProgress_;
+            DrawRectangleRec(progressFill, sliderProgressColor);
+        }
         
         if(isHoveringProgressBar && currentMusicTotalLength_ > 0){
             // GuiDisableTooltip();
@@ -158,10 +153,14 @@ void MusicPlayer::drawInterface(){
         
         if(IsMouseButtonDown(MOUSE_BUTTON_LEFT) && isCurrentlyInteractingWithProgressBar_){
             PauseAudioStream(audioStream_);
+            float clickedProgress{(mousePosition.x - progressBarRectangle.x) / progressBarRectangle.width};
+            if(clickedProgress < .0f) clickedProgress = .0f;
+            if(clickedProgress > 1.0f) clickedProgress = 1.0f;
+            musicProgress_ = clickedProgress;
         }
         
         if(IsMouseButtonReleased(MOUSE_BUTTON_LEFT) && isCurrentlyInteractingWithProgressBar_){
-            DEBUG_PRINT("[Interface] Released! musicProgress_={:.4f} oldProgress={:.4f}", musicProgress_, oldProgress);
+            // DEBUG_PRINT("[Interface] Released! musicProgress_={:.4f} oldProgress={:.4f}", musicProgress_, oldProgress);
             isCurrentlyInteractingWithProgressBar_ = false;
             // if(musicProgress_ != oldProgress){
                 progressBarClicked();
@@ -169,7 +168,7 @@ void MusicPlayer::drawInterface(){
             if(!wasPausing_) ResumeAudioStream(audioStream_);
         }
         
-        if(formatContext_ == nullptr) GuiEnable();
+        // if(formatContext_ == nullptr) GuiEnable();
         
         
         const int totalTimeXPosition{progressBarXPosition + constants::ui::ProgressBarWidth + constants::ui::TotalTimeXOffset};
@@ -269,8 +268,8 @@ void MusicPlayer::drawInterface(){
     
     if(!activeTooltip.empty()){
         Vector2 mousePosition{GetMousePosition()};
-        Vector2 tooltipTextSize{MeasureTextEx(GuiGetFont(), activeTooltip.c_str(), GuiGetStyle(DEFAULT, TEXT_SIZE), GuiGetStyle(DEFAULT, TEXT_SPACING))};
-        float tooltipHeight{GuiGetStyle(DEFAULT, TEXT_SIZE) + constants::ui::TooltipHeightPadding};
+        Vector2 tooltipTextSize{MeasureTextEx(customFont_, activeTooltip.c_str(), constants::ui::TextFontSize, 1.0f)};
+        float tooltipHeight{static_cast<float>(constants::ui::TextFontSize + constants::ui::TooltipHeightPadding)};
         float tooltipWidth{tooltipTextSize.x + constants::ui::TooltipWidthPadding};
         
         Rectangle tooltipRectangle{
@@ -284,13 +283,13 @@ void MusicPlayer::drawInterface(){
         if(tooltipRectangle.x + tooltipWidth > GetScreenWidth()) tooltipRectangle.x = GetScreenWidth() - tooltipWidth;
         if(tooltipRectangle.y < 0) tooltipRectangle.y = mousePosition.y + constants::ui::TooltipFallbackYOffset;
         
-        GuiPanel(tooltipRectangle, nullptr);
-        int previousTextAlignment{GuiGetStyle(LABEL, TEXT_ALIGNMENT)};
-        int previousTextPadding{GuiGetStyle(LABEL, TEXT_PADDING)};
-        GuiSetStyle(LABEL, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
-        GuiSetStyle(LABEL, TEXT_PADDING, 0);
-        GuiLabel(tooltipRectangle, activeTooltip.c_str());
-        GuiSetStyle(LABEL, TEXT_ALIGNMENT, previousTextAlignment);
-        GuiSetStyle(LABEL, TEXT_PADDING, previousTextPadding);
+        DrawRectangleRec(tooltipRectangle, constants::ui::TooltipBackgroundColor);
+        DrawRectangleLinesEx(tooltipRectangle, constants::ui::TooltipBorderWidth, constants::ui::TooltipBorderColor);
+        
+        Vector2 textPos{
+            tooltipRectangle.x + (tooltipRectangle.width - tooltipTextSize.x) / 2.0f,
+            tooltipRectangle.y + (tooltipRectangle.height - tooltipTextSize.y) / 2.0f
+        };
+        DrawTextEx(customFont_, activeTooltip.c_str(), textPos, constants::ui::TextFontSize, 1.0f, BLACK);
     }
 }

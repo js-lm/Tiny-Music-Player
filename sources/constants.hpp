@@ -43,7 +43,7 @@ namespace constants{
         constexpr int AudioThreadSleepDurationMs{10};
         constexpr int AudioThreadEventPostFrequency{10}; // roughly 10 * 10ms
 
-        constexpr const char *AppVersion{"1.0"};
+        constexpr const char *AppVersion{"1.1"};
     } // namespace system
 
     namespace ui{
@@ -72,6 +72,11 @@ namespace constants{
         
         constexpr Color SubtitleColor{128, 128, 128, 255};
 
+        constexpr Color ProgressBarBackgroundColor{200, 200, 200, 127};
+        constexpr Color ProgressBarBackgroundColorDisabled{130, 130, 130, 127};
+        constexpr Color ProgressBarFillColor{130, 130, 130, 255};
+        constexpr Color ProgressBarFillColorDisabled{130, 130, 130, 204};
+
         constexpr float ProgressBarHoverIndicatorWidth{2.0f};
         constexpr float ProgressBarHoverIndicatorXOffset{1.0f};
 
@@ -79,6 +84,10 @@ namespace constants{
         constexpr float TooltipWidthPadding{16.0f};
         constexpr float TooltipYOffset{12.0f};
         constexpr float TooltipFallbackYOffset{16.0f};
+        
+        constexpr Color TooltipBackgroundColor{245, 245, 245, 255};
+        constexpr Color TooltipBorderColor{200, 200, 200, 255};
+        constexpr float TooltipBorderWidth{1.0f};
 
         constexpr const char *TooltipNoLoop{"No Loop"};
         constexpr const char *TooltipSingleMusicLoop{"Single Music Loop"};

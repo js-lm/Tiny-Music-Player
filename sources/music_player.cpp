@@ -1,11 +1,8 @@
-#define RAYGUI_IMPLEMENTATION
 #include "music_player.hpp"
 
 #include "constants.hpp"
 
 #include "lock.hpp"
-
-#include "debug_utilities.hpp"
 
 #include <clocale>
 
@@ -118,7 +115,7 @@ void MusicPlayer::initialize(){
                                             if(this->audioThreadSeekGeneration_ == this->seekGeneration_){
                                                 this->musicTimePlayed_ = packetTime;
                                             }else{
-                                                DEBUG_PRINT("[audioThread] SKIPPED PTS update: packetTime={:.4f} (gen {} != {})", packetTime, this->audioThreadSeekGeneration_, this->seekGeneration_);
+                                                // DEBUG_PRINT("[audioThread] SKIPPED PTS update: packetTime={:.4f} (gen {} != {})", packetTime, this->audioThreadSeekGeneration_, this->seekGeneration_);
                                             }
                                         }
                                         

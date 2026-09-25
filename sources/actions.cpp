@@ -1,7 +1,5 @@
 #include "music_player.hpp"
 
-#include "debug_utilities.hpp"
-
 #include <stdlib.h>
 
 void MusicPlayer::minimizeClicked(){
@@ -106,10 +104,10 @@ void MusicPlayer::progressBarClicked(){
           / av_q2d(formatContext_->streams[audioStreamIndex_]->time_base)
         )};
         
-        DEBUG_PRINT("[progressBarClicked] musicProgress_={:.4f} targetTime={:.4f}", musicProgress_, musicProgress_ * currentMusicTotalLength_);
+        // DEBUG_PRINT("[progressBarClicked] musicProgress_={:.4f} targetTime={:.4f}", musicProgress_, musicProgress_ * currentMusicTotalLength_);
         
         int seekResult{av_seek_frame(formatContext_, audioStreamIndex_, targetPresentationTimestamp, AVSEEK_FLAG_ANY)};
-        DEBUG_PRINT("[progressBarClicked] av_seek_frame returned {}", seekResult);
+        // DEBUG_PRINT("[progressBarClicked] av_seek_frame returned {}", seekResult);
         
         avcodec_flush_buffers(codecContext_);
         swr_init(swrContext_);

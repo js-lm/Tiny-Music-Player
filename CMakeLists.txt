@@ -25,23 +25,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(raylib)
 
-FetchContent_Declare(
-    raygui
-    GIT_REPOSITORY https://github.com/raysan5/raygui.git
-    GIT_TAG        5.0
-)
-FetchContent_GetProperties(raygui)
-if(NOT raygui_POPULATED)
-    FetchContent_Populate(raygui)
-endif()
-
-FetchContent_Declare(
-    fmt
-    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG        12.2.0
-)
-FetchContent_MakeAvailable(fmt)
-
 if(UNIX AND NOT APPLE)
     set(SDBUSCPP_BUILD_CODEGEN OFF CACHE BOOL "" FORCE)
     set(SDBUSCPP_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -104,12 +87,11 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:DEBUG>)
 target_include_directories(${PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/sources"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources"
-    "${raygui_SOURCE_DIR}/src"
+
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     raylib
-    fmt
     avformat
     avcodec
     swresample

@@ -4,8 +4,6 @@
 
 #include "lock.hpp"
 
-#include "debug_utilities.hpp"
-
 #include "font_lanapixel.hpp"
 
 #include <sstream>
@@ -117,7 +115,7 @@ void MusicPlayer::updateMusic(){
     // musicProgress_ = musicTimePlayed / currentMusicTotalLength_;
     // currentProgressString_ = secondInFloatToString(musicTimePlayed);
     if(!isCurrentlyInteractingWithProgressBar_){
-        DEBUG_PRINT_IF_CHANGED("[updateMusic] overwriting musicProgress_={:.4f} with musicTimePlayed={:.4f}", musicProgress_, musicTimePlayed);
+        // DEBUG_PRINT_IF_CHANGED("[updateMusic] overwriting musicProgress_={:.4f} with musicTimePlayed={:.4f}", musicProgress_, musicTimePlayed);
         musicProgress_ = musicTimePlayed / currentMusicTotalLength_;
         currentProgressString_ = secondInFloatToString(musicTimePlayed);
     }else{
@@ -125,7 +123,7 @@ void MusicPlayer::updateMusic(){
     }
 
     if(!IsAudioStreamPlaying(audioStream_) && !isManuallyPaused_ && !isCurrentlyInteractingWithProgressBar_){
-        DEBUG_PRINT("[updateMusic] handleMusicEnd triggered! isPlaying={} isManuallyPaused={} isInteracting={}", IsAudioStreamPlaying(audioStream_), isManuallyPaused_, isCurrentlyInteractingWithProgressBar_);
+        // DEBUG_PRINT("[updateMusic] handleMusicEnd triggered! isPlaying={} isManuallyPaused={} isInteracting={}", IsAudioStreamPlaying(audioStream_), isManuallyPaused_, isCurrentlyInteractingWithProgressBar_);
         handleMusicEnd();
     }
 }
@@ -171,8 +169,8 @@ void MusicPlayer::reloadFont(){
     customFont_ = LoadFontFromMemory(".ttf", resources_LanaPixel_ttf, resources_LanaPixel_ttf_length, constants::ui::TextFontSize, codepoints.data(), codepoints.size());
     SetTextureFilter(customFont_.texture, TEXTURE_FILTER_POINT);
 
-    GuiSetFont(customFont_);
-    GuiSetStyle(DEFAULT, TEXT_SIZE, constants::ui::TextFontSize);
+    // GuiSetFont(customFont_);
+    // GuiSetStyle(DEFAULT, TEXT_SIZE, constants::ui::TextFontSize);
 }
 
 void MusicPlayer::resetMusicState(){
