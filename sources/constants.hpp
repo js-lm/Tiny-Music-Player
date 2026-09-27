@@ -96,6 +96,10 @@ namespace constants{
         constexpr const char *TooltipDirectoryLoop{"Directory Loop"};
         constexpr const char *TooltipDirectoryLoopInfinite{"Directory Loop Infinite"};
 
+        constexpr float MarqueeWaitBeforeScroll{3.0f};
+        constexpr float MarqueeWaitAfterScroll{2.0f};
+        constexpr float MarqueeScrollSpeed{50.0f}; // pixels per second
+
     } // namespace ui
 
     namespace window_icon{

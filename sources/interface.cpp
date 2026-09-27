@@ -2,6 +2,9 @@
 
 #include "constants.hpp"
 
+#include <cmath>
+#include <algorithm>
+
 void MusicPlayer::drawInterface(){
     std::lock_guard<std::recursive_mutex> lock{musicMutex_};
     isAnyWidgetHovered_ = false;
@@ -36,22 +39,56 @@ void MusicPlayer::drawInterface(){
     } /* Window controls */
     
     /* Song Information */ {
+        auto drawMarqueeText{[&](const char *text, Vector2 position, int fontSize, Color color, float maximumWidth)->Rectangle{
+            Vector2 textSize{MeasureTextEx(customFont_, text, fontSize, 1.0f)};
+            float textWidth{textSize.x};
+            float textHeight{textSize.y};
+            Rectangle textRectangle{position.x, position.y, std::min(textWidth, maximumWidth), textHeight};
+            
+            if(textWidth <= maximumWidth){
+                DrawTextEx(customFont_, text, position, fontSize, 1.0f, color);
+            }else{
+                float rawTime{static_cast<float>(GetTime())};
+                float time{std::floor(rawTime / constants::system::ProgressBarUpdateInterval) * constants::system::ProgressBarUpdateInterval};
+                float scrollDistance{textWidth - maximumWidth};
+                
+                float scrollDuration{scrollDistance / constants::ui::MarqueeScrollSpeed};
+                float totalCycleTime{constants::ui::MarqueeWaitBeforeScroll + scrollDuration + constants::ui::MarqueeWaitAfterScroll};
+                
+                float cycleTime{std::fmod(time, totalCycleTime)};
+                
+                float xOffset{.0f};
+                if(cycleTime < constants::ui::MarqueeWaitBeforeScroll){
+                    xOffset = .0f;
+                }else if(cycleTime < constants::ui::MarqueeWaitBeforeScroll + scrollDuration){
+                    xOffset = (cycleTime - constants::ui::MarqueeWaitBeforeScroll) * constants::ui::MarqueeScrollSpeed;
+                }else{
+                    xOffset = scrollDistance;
+                }
+                
+                BeginScissorMode(static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(maximumWidth), static_cast<int>(textHeight));
+                Vector2 drawPosition{position.x - xOffset, position.y};
+                DrawTextEx(customFont_, text, drawPosition, fontSize, 1.0f, color);
+                EndScissorMode();
+            }
+            return textRectangle;
+        }};
+
+        float maximumTextWidth{screenWidth - constants::ui::TextIndentation * 2.0f};
+
         Vector2 titlePosition{
             static_cast<float>(constants::ui::TextIndentation), 
             static_cast<float>(constants::ui::TitleYPosition)
         };
-        DrawTextEx(
-            customFont_,
+        Rectangle titleRectangle{drawMarqueeText(
             displayedMusicTitle_.c_str(), 
             titlePosition, 
             constants::ui::TextFontSize, 
-            1.0f,
-            BLACK
-        );
+            BLACK, 
+            maximumTextWidth
+        )};
         
         Vector2 mousePosition{GetMousePosition()};
-        int titleWidth{static_cast<int>(MeasureTextEx(customFont_, displayedMusicTitle_.c_str(), constants::ui::TextFontSize, 1.0f).x)};
-        Rectangle titleRectangle{titlePosition.x, titlePosition.y, static_cast<float>(titleWidth), constants::ui::TextFontSize};
         if(CheckCollisionPointRec(mousePosition, titleRectangle)){
             isAnyWidgetHovered_ = true;
             if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) copyMusicTitleClicked();
@@ -64,17 +101,15 @@ void MusicPlayer::drawInterface(){
         const char *subtitleText{isShowingArtist_ && !displayedArtistName_.empty() 
             ? displayedArtistName_.c_str() 
             : displayedFilePath_.c_str()};
-        DrawTextEx(
-            customFont_,
+            
+        Rectangle subtitleRectangle{drawMarqueeText(
             subtitleText, 
             subtitlePosition, 
             constants::ui::TextFontSize, 
-            1.0f,
-            ColorAlpha(BLACK, .5f)
-        );
+            ColorAlpha(BLACK, .5f), 
+            maximumTextWidth
+        )};
         
-        int subtitleWidth{static_cast<int>(MeasureTextEx(customFont_, subtitleText, constants::ui::TextFontSize, 1.0f).x)};
-        Rectangle subtitleRectangle{subtitlePosition.x, subtitlePosition.y, static_cast<float>(subtitleWidth), constants::ui::TextFontSize};
         if(CheckCollisionPointRec(mousePosition, subtitleRectangle)){
             isAnyWidgetHovered_ = true;
             if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) togglePathAndArtistClicked();
@@ -312,5 +347,11 @@ void MusicPlayer::drawInterface(){
             tooltipRectangle.y + (tooltipRectangle.height - tooltipTextSize.y) / 2.0f
         };
         DrawTextEx(customFont_, activeTooltip.c_str(), textPos, constants::ui::TextFontSize, 1.0f, BLACK);
+    }
+    
+    if(isAnyWidgetHovered_){
+        SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+    }else{
+        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
 }
