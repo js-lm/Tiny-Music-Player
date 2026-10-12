@@ -1,12 +1,12 @@
 #pragma once
 
 #include <raylib.h>
-#include <string>
-#include <optional>
-#include <vector>
 
 #include "constants.hpp"
 
+#include <string>
+#include <optional>
+#include <vector>
 #include <thread>
 #include <atomic>
 #include <mutex>
@@ -46,7 +46,7 @@ private:
     int audioThreadSeekGeneration_{0};
 
     float musicProgress_;
-    float musicTimePlayed_{.0f};
+    std::atomic<float> musicTimePlayed_{.0f};
     float currentMusicTotalLength_;
 
     std::string totalLengthString_;

@@ -121,7 +121,6 @@ void MusicPlayer::initializeWindowIcon(){
 }
 
 void MusicPlayer::updateMusic(){
-    std::lock_guard<std::recursive_mutex> lock{musicMutex_};
     
     // if(!pendingNextMusicPath_.empty()){
     //     std::string nextPath{pendingNextMusicPath_};
@@ -215,6 +214,7 @@ void MusicPlayer::resetMusicState(){
 
 
 void MusicPlayer::tryUnloadMusic(){
+    std::lock_guard<std::recursive_mutex> lock{musicMutex_};
     // if(IsMusicValid(music_)){
     //     StopMusicStream(music_);
     //     UnloadMusicStream(music_);
@@ -323,6 +323,7 @@ bool MusicPlayer::isMediaFile(const std::string &path){
 }
 
 bool MusicPlayer::tryStartMusicStream(const char *filename){
+    std::lock_guard<std::recursive_mutex> lock{musicMutex_};
     resetMusicState();
 
     formatContext_ = avformat_alloc_context();

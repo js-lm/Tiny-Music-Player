@@ -6,7 +6,6 @@
 #include <algorithm>
 
 void MusicPlayer::drawInterface(){
-    std::lock_guard<std::recursive_mutex> lock{musicMutex_};
     isAnyWidgetHovered_ = false;
     std::string activeTooltip;
     
