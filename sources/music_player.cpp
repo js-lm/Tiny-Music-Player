@@ -196,7 +196,12 @@ void MusicPlayer::initialize(){
     std::setlocale(LC_ALL, "C");
 #endif
 
-    if(!programArgumentPath_.empty()) initializeMusicStream(programArgumentPath_.c_str());
+    history_.setEnabled(config_.historyEnabled);
+    history_.setMaxEntries(config_.historyMaxEntries);
+    history_.load();
+    lastHistoryAutosaveTime_ = GetTime();
+
+    if(!programArgumentPath_.empty()) initializeMusicStream(programArgumentPath_.c_str(), true);
 }
 
 void MusicPlayer::update(){
@@ -249,6 +254,9 @@ void MusicPlayer::shutdown(){
 
     eventsThreadRunning_ = false;
     if(eventsThread_.joinable()) eventsThread_.join();
+
+    recordCurrentProgress();
+    history_.save();
 
     tryUnloadMusic();
     CloseAudioDevice();

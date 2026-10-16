@@ -130,6 +130,12 @@ void MusicPlayer::updateMusic(){
     
     if(formatContext_ == nullptr) return;
 
+    if(GetTime() - lastHistoryAutosaveTime_ >= constants::history::AutosaveIntervalSeconds){
+        lastHistoryAutosaveTime_ = GetTime();
+        recordCurrentProgress();
+        history_.save();
+    }
+
     // UpdateMusicStream(music_);
 
     float musicTimePlayed{musicTimePlayed_};
@@ -235,8 +241,10 @@ void MusicPlayer::tryUnloadMusic(){
     }
 }
 
-void MusicPlayer::initializeMusicStream(const char *path){
+void MusicPlayer::initializeMusicStream(const char *path, bool isUserInitiated){
     if(!FileExists(path) && !DirectoryExists(path)) return;
+    
+    recordCurrentProgress();
     
     unloadDirectory();
     
@@ -267,6 +275,7 @@ void MusicPlayer::initializeMusicStream(const char *path){
     
     if(!currentFileName_.empty()){
         if(tryStartMusicStream(path)){
+            if(isUserInitiated) resumeFromHistory();
             if(isShuffling_){
                 shuffleHistory_.push_back(currentFileName_);
                 shuffleHistoryIndex_ = 0;
@@ -324,6 +333,7 @@ bool MusicPlayer::isMediaFile(const std::string &path){
 
 bool MusicPlayer::tryStartMusicStream(const char *filename){
     std::lock_guard<std::recursive_mutex> lock{musicMutex_};
+    recordCurrentProgress();
     resetMusicState();
 
     formatContext_ = avformat_alloc_context();

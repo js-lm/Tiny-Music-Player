@@ -121,9 +121,14 @@ void MusicPlayer::toggleLoopClicked(bool isForward){
 }
 
 void MusicPlayer::progressBarClicked(){
+    seekToSeconds(musicProgress_ * currentMusicTotalLength_);
+}
+
+void MusicPlayer::seekToSeconds(float targetSeconds){
+    std::lock_guard<std::recursive_mutex> lock{musicMutex_};
     if(formatContext_ != nullptr){
         int64_t targetPresentationTimestamp{static_cast<int64_t>(
-            (musicProgress_ * currentMusicTotalLength_)
+            targetSeconds
           / av_q2d(formatContext_->streams[audioStreamIndex_]->time_base)
         )};
         
@@ -135,7 +140,7 @@ void MusicPlayer::progressBarClicked(){
         avcodec_flush_buffers(codecContext_);
         swr_init(swrContext_);
         audioBuffer_.clear();
-        musicTimePlayed_ = musicProgress_ * currentMusicTotalLength_;
+        musicTimePlayed_ = targetSeconds;
         currentProgressString_ = secondInFloatToString(musicTimePlayed_);
         seekGeneration_++;
         isAtEndOfMusic_ = false;
@@ -149,4 +154,14 @@ void MusicPlayer::progressBarClicked(){
 void MusicPlayer::togglePathAndArtistClicked(){
     if(isShowingArtist_) isShowingArtist_ = false;
     else if(!displayedArtistName_.empty()) isShowingArtist_ = true;
+}
+
+void MusicPlayer::recordCurrentProgress(){
+    if(formatContext_ == nullptr) return;
+    history_.record(displayedFilePath_, musicTimePlayed_, currentMusicTotalLength_);
+}
+
+void MusicPlayer::resumeFromHistory(){
+    std::optional<float> savedProgress{history_.findProgress(displayedFilePath_, currentMusicTotalLength_)};
+    if(savedProgress) seekToSeconds(savedProgress.value());
 }

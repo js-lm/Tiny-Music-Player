@@ -3,6 +3,8 @@
 #include <raylib.h>
 
 #include "constants.hpp"
+#include "config.hpp"
+#include "history.hpp"
 
 #include <string>
 #include <optional>
@@ -68,6 +70,11 @@ private:
 
 private:
     std::string programArgumentPath_;
+
+private:
+    Config config_;
+    PlaybackHistory history_;
+    double lastHistoryAutosaveTime_{.0};
 
 private:
     constants::LoopMode loopMode_{constants::LoopMode::No_Loop};
@@ -137,7 +144,7 @@ private:
     void resetMusicState();
     void reloadFont();
 
-    void initializeMusicStream(const char *path);
+    void initializeMusicStream(const char *path, bool isUserInitiated = false);
     void tryUnloadMusic();
 
     bool tryStartMusicStream(const char *filename);
@@ -145,6 +152,10 @@ private:
     void unloadDirectory();
     bool findNextValidMusic(bool isForward = true, bool allowLoop = true);
     // void goToPreviousMusic();
+
+    void seekToSeconds(float targetSeconds);
+    void recordCurrentProgress();
+    void resumeFromHistory();
 
 private:
     void handleWindowDrag();

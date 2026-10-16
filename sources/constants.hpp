@@ -44,7 +44,27 @@ namespace constants{
         constexpr float PreviousSongRestartThreshold{2.0f};
 
         constexpr const char *AppVersion{"1.1"};
+
+        constexpr const char *ConfigDirectoryName{"tiny-music-player"};
     } // namespace system
+
+    namespace history{
+        constexpr const char *FileName{"history"};
+        constexpr int FileVersion{0};
+        constexpr size_t FingerprintBytes{4096};
+        constexpr double AutosaveIntervalSeconds{5.0};
+        constexpr size_t MaxEntries{1024};
+
+        // in seconds
+        // progress inside the head/tail zone is never stored
+        constexpr float MinimumTrackedLength{60.0f};
+        constexpr float ShortTrackBoundary{180.0f};
+        constexpr float LongTrackBoundary{600.0f};
+        constexpr float ShortTrackHead{10.0f};
+        constexpr float ShortTrackTail{20.0f};
+        constexpr float LongTrackHead{50.0f};
+        constexpr float LongTrackTail{100.0f};
+    } // namespace history
 
     namespace ui{
         constexpr float BackgroundOpacity{.9f};

@@ -41,7 +41,7 @@ void MusicPlayer::handleFileDrop(){
     if(!IsFileDropped()) return;
 
     FilePathList droppedFiles{LoadDroppedFiles()};    
-    initializeMusicStream(droppedFiles.paths[0]);
+    initializeMusicStream(droppedFiles.paths[0], true);
     UnloadDroppedFiles(droppedFiles);
 }
 
@@ -87,7 +87,7 @@ void MusicPlayer::handleNewInstanceOpened(){
 
     if(auto newMusic{lock::TryGetNewFilePath()}){
         if(isMediaFile(newMusic.value().c_str())){
-            initializeMusicStream(newMusic.value().c_str());
+            initializeMusicStream(newMusic.value().c_str(), true);
         }
     }
 
