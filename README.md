@@ -1,6 +1,6 @@
 # Tiny Music Player
 
-A bloat-free music player built with C++ and [raylib](https://www.raylib.com/).
+A simple music player built with C++ and [raylib](https://www.raylib.com/).
 
 ![Tiny Music Player](documents/thumbnail.png)
 
@@ -16,6 +16,7 @@ Before this, I was using [Decibels](https://apps.gnome.org/Decibels/). It was gr
 
 - Supports pretty much all common audio formats (thanks to FFmpeg).
 - No bloat (not even playlists), just the basic controls and a simple directory loop feature.
+- That's it :)
 
 ![Tiny Music Player desktop UI](documents/player.png)
 
@@ -31,8 +32,6 @@ Before this, I was using [Decibels](https://apps.gnome.org/Decibels/). It was gr
 Automatically managed by CMake.
 
 - [raylib](https://github.com/raysan5/raylib) - Rendering
-- [raygui](https://github.com/raysan5/raygui) - UI components
-- [fmt](https://github.com/fmtlib/fmt) - Formatting
 - [FFmpeg](https://ffmpeg.org/) - Audio decoding
 
 ### Build Instructions
