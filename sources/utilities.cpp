@@ -299,10 +299,9 @@ void MusicPlayer::unloadDirectory(){
 }
 
 bool MusicPlayer::isMediaFile(const std::string &path){
-    auto dotPosition{path.rfind('.')};
-    if(dotPosition != std::string::npos){
-        std::string extension{path.substr(dotPosition)};
-        std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+    const char *extensionPointer{GetFileExtension(path.c_str())};
+    if(extensionPointer != nullptr){
+        std::string extension{TextToLower(extensionPointer)};
 
         for(const auto &audioExtension : constants::SupportedMusicExtensions){
             if(extension == audioExtension) return true;

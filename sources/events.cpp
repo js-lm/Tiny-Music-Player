@@ -79,7 +79,46 @@ void MusicPlayer::handleMusicEnd(){
 
 void MusicPlayer::handleKeyboard(){
     if(IsKeyPressed(KEY_SPACE)) playPauseMusicClicked();
+
+    int pressedSeekKey{KEY_NULL};
+    if(IsKeyDown(KEY_RIGHT) && !IsKeyDown(KEY_LEFT)) pressedSeekKey = KEY_RIGHT;
+    else if(IsKeyDown(KEY_LEFT) && !IsKeyDown(KEY_RIGHT)) pressedSeekKey = KEY_LEFT;
+
+    double currentTime{GetTime()};
+    bool shouldSeek{false};
+    if(pressedSeekKey != heldSeekKey_){
+        heldSeekKey_ = pressedSeekKey;
+        seekKeyHoldStartTime_ = currentTime;
+        lastSeekTime_ = currentTime;
+        shouldSeek = (pressedSeekKey != KEY_NULL);
+    }else if(pressedSeekKey != KEY_NULL){
+        double holdDuration{currentTime - seekKeyHoldStartTime_};
+        double repeatInterval{
+            holdDuration < constants::system::SeekRepeatSlowPhaseSeconds
+                ? constants::system::SeekRepeatSlowIntervalSeconds
+                : constants::system::SeekRepeatFastIntervalSeconds
+        };
+        if(currentTime - lastSeekTime_ >= repeatInterval){
+            lastSeekTime_ = currentTime;
+            shouldSeek = true;
+        }
+    }
+
+    bool isRightPressed{pressedSeekKey == KEY_RIGHT};
+    
+    if(shouldSeek && formatContext_ != nullptr){
+        bool isShiftHeld{IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)};
+
+        float stepSeconds{isShiftHeld ? constants::system::SeekStepFineSeconds : constants::system::SeekStepSeconds};
+        float direction{isRightPressed ? 1.0f : -1.0f};
+        float targetSeconds{musicTimePlayed_ + direction * stepSeconds};
+
+        targetSeconds = Clamp(targetSeconds, .0f, currentMusicTotalLength_);
+
+        seekToSeconds(targetSeconds);
+    }
 }
+
 
 void MusicPlayer::handleNewInstanceOpened(){
     // if(timeSinceLastLockUpdate_ <= 0){

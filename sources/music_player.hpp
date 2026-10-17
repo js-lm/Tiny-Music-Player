@@ -107,6 +107,11 @@ private: // music end event
     bool isCurrentlyInteractingWithProgressBar_{false};
     bool isAtEndOfMusic_{false};
 
+private: // seek key hold event
+    int heldSeekKey_{KEY_NULL};
+    double seekKeyHoldStartTime_{.0};
+    double lastSeekTime_{.0};
+
 
 #if defined(__linux__)
     std::unique_ptr<MprisIntegration> mprisIntegration_{nullptr};

@@ -5,6 +5,8 @@
 #include <cmath>
 #include <algorithm>
 
+#include <raymath.h>
+
 void MusicPlayer::drawInterface(){
     isAnyWidgetHovered_ = false;
     std::string activeTooltip;
@@ -155,9 +157,7 @@ void MusicPlayer::drawInterface(){
             // GuiDisableTooltip();
             // GuiSetTooltip(nullptr);
             
-            float hoveredProgress{(mousePosition.x - progressBarRectangle.x) / progressBarRectangle.width};
-            if(hoveredProgress < .0f) hoveredProgress = .0f;
-            if(hoveredProgress > 1.0f) hoveredProgress = 1.0f;
+            float hoveredProgress{Clamp((mousePosition.x - progressBarRectangle.x) / progressBarRectangle.width, .0f, 1.0f)};
             
             Rectangle hoverIndicatorRectangle{
                 progressBarRectangle.x + hoveredProgress * progressBarRectangle.width - constants::ui::ProgressBarHoverIndicatorXOffset,
@@ -178,18 +178,14 @@ void MusicPlayer::drawInterface(){
                 
                 // seem like GuiSliderBar does not update the value on the first press frame,
                 // only on subsequent frames. So I manually set it from the mouse position here
-                float clickedProgress{(mousePosition.x - progressBarRectangle.x) / progressBarRectangle.width};
-                if(clickedProgress < .0f) clickedProgress = .0f;
-                if(clickedProgress > 1.0f) clickedProgress = 1.0f;
+                float clickedProgress{Clamp((mousePosition.x - progressBarRectangle.x) / progressBarRectangle.width, .0f, 1.0f)};
                 musicProgress_ = clickedProgress;
             }
         }
         
         if(IsMouseButtonDown(MOUSE_BUTTON_LEFT) && isCurrentlyInteractingWithProgressBar_){
             PauseAudioStream(audioStream_);
-            float clickedProgress{(mousePosition.x - progressBarRectangle.x) / progressBarRectangle.width};
-            if(clickedProgress < .0f) clickedProgress = .0f;
-            if(clickedProgress > 1.0f) clickedProgress = 1.0f;
+            float clickedProgress{Clamp((mousePosition.x - progressBarRectangle.x) / progressBarRectangle.width, .0f, 1.0f)};
             musicProgress_ = clickedProgress;
         }
         
@@ -334,8 +330,7 @@ void MusicPlayer::drawInterface(){
             tooltipHeight
         };
         
-        if(tooltipRectangle.x < 0) tooltipRectangle.x = 0;
-        if(tooltipRectangle.x + tooltipWidth > GetScreenWidth()) tooltipRectangle.x = GetScreenWidth() - tooltipWidth;
+        tooltipRectangle.x = Clamp(tooltipRectangle.x, 0.0f, GetScreenWidth() - tooltipWidth);
         if(tooltipRectangle.y < 0) tooltipRectangle.y = mousePosition.y + constants::ui::TooltipFallbackYOffset;
         
         DrawRectangleRec(tooltipRectangle, constants::ui::TooltipBackgroundColor);

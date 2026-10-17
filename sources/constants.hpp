@@ -42,6 +42,12 @@ namespace constants{
         constexpr int EventThreadSleepDurationMs{50};
         constexpr float ProgressBarUpdateInterval{.25f};
         constexpr float PreviousSongRestartThreshold{2.0f};
+        
+        constexpr float SeekStepSeconds{10.0f};
+        constexpr float SeekStepFineSeconds{1.0f};
+        constexpr double SeekRepeatSlowPhaseSeconds{2.0};
+        constexpr double SeekRepeatSlowIntervalSeconds{.1};
+        constexpr double SeekRepeatFastIntervalSeconds{.04};
 
         constexpr const char *AppVersion{"1.1"};
 
