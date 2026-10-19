@@ -52,6 +52,7 @@ namespace constants{
         constexpr const char *AppVersion{"1.1"};
 
         constexpr const char *ConfigDirectoryName{"tiny-music-player"};
+        constexpr const char *PlayerStateFileName{"state"};
     } // namespace system
 
     namespace history{

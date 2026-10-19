@@ -9,9 +9,12 @@
 struct Config{
     bool historyEnabled{true};
     size_t historyMaxEntries{constants::history::MaxEntries};
+
+    bool rememberPlayerState{true};
 };
 
 namespace config{
+
     inline std::filesystem::path GetApplicationConfigDirectory(){
 #if defined(__linux__)
         const char *xdgConfigHome{std::getenv("XDG_CONFIG_HOME")};

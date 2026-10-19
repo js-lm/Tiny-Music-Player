@@ -5,6 +5,7 @@
 #include "lock.hpp"
 
 #include <clocale>
+#include <fstream>
 
 extern "C" void glfwPostEmptyEvent(void);
 
@@ -199,6 +200,7 @@ void MusicPlayer::initialize(){
     history_.setEnabled(config_.historyEnabled);
     history_.setMaxEntries(config_.historyMaxEntries);
     history_.load();
+    if(config_.rememberPlayerState) loadPlayerState();
     lastHistoryAutosaveTime_ = GetTime();
 
     if(!programArgumentPath_.empty()) initializeMusicStream(programArgumentPath_.c_str(), true);
@@ -257,6 +259,7 @@ void MusicPlayer::shutdown(){
 
     recordCurrentProgress();
     history_.save();
+    if(config_.rememberPlayerState) savePlayerState();
 
     tryUnloadMusic();
     CloseAudioDevice();
@@ -265,4 +268,36 @@ void MusicPlayer::shutdown(){
     UnloadRenderTexture(renderTexture_);
     CloseWindow();
     lock::UnlockProgram();
+}
+
+void MusicPlayer::loadPlayerState(){
+    std::filesystem::path directory{config::GetApplicationConfigDirectory()};
+    if(directory.empty()) return;
+
+    /* loop mode, shuffle */ {
+        std::ifstream file{directory / constants::system::PlayerStateFileName};
+
+        int loopModeIndex{0};
+        int isShuffling{0};
+
+        if(file >> loopModeIndex >> isShuffling){
+            if(loopModeIndex >= 0 && loopModeIndex < constants::NumberOfLoopMode){
+                loopMode_ = static_cast<constants::LoopMode>(loopModeIndex);
+            }
+            isShuffling_ = isShuffling != 0;
+        }
+
+    } /* loop mode, shuffle */
+}
+
+void MusicPlayer::savePlayerState(){
+    std::filesystem::path directory{config::GetApplicationConfigDirectory()};
+    if(directory.empty()) return;
+
+    std::error_code errorCode;
+    std::filesystem::create_directories(directory, errorCode);
+    if(errorCode) return;
+
+    std::ofstream file{directory / constants::system::PlayerStateFileName, std::ios::trunc};
+    file << static_cast<int>(loopMode_) << ' ' << (isShuffling_ ? 1 : 0) << '\n';
 }

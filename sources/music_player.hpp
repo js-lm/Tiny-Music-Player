@@ -162,6 +162,9 @@ private:
     void recordCurrentProgress();
     void resumeFromHistory();
 
+    void loadPlayerState();
+    void savePlayerState();
+
 private:
     void handleWindowDrag();
     void handleFileDrop();
